@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Bookings;
+using Domain.Models.Entities.Bookings;
 using Domain.Models.Entities.Users;
 
 namespace Domain.Models.Entities.Children

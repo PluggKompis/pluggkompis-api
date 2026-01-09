@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Subjects;
+using Domain.Models.Entities.Subjects;
 using Domain.Models.Entities.Venues;
 
 namespace Domain.Models.Entities.JoinEntities

@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Venues;
+using Domain.Models.Entities.Venues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

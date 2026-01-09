@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Users;
+using Domain.Models.Entities.Users;
 using Domain.Models.Entities.Venues;
 using Domain.Models.Enums;
 

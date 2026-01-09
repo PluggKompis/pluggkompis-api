@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Users;
+using Domain.Models.Entities.Users;
 using Domain.Models.Entities.Volunteers;
 
 namespace Domain.Models.Entities.Venues

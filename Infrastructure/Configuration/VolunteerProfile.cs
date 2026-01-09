@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Volunteers;
+using Domain.Models.Entities.Volunteers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

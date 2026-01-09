@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Subjects;
+using Domain.Models.Entities.Subjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

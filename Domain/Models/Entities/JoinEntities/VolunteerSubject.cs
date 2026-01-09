@@ -1,4 +1,4 @@
-﻿using Domain.Models.Entities.Subjects;
+using Domain.Models.Entities.Subjects;
 using Domain.Models.Entities.Users;
 using Domain.Models.Enums;
 
