@@ -519,8 +519,8 @@ This project is created as a school project for NBI Handelsakademin.
 
 ## 👥 Team
 
-- **Gabby** - Full-stack developer
-- **Mohanad** - Full-stack developer
+- **[Gabby](https://github.com/GabbyFerm)** - Full-stack developer
+- **[Mohanad](https://github.com/mohald-3)** - Full-stack developer
 
 **Course:** Advanced Object-Oriented Programming  
 **Institution:** NBI Handelsakademin, Gothenburg  
