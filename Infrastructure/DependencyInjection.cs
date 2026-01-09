@@ -20,7 +20,7 @@ namespace Infrastructure
                 configuration.GetSection("JwtSettings")
             );
 
-            services.AddScoped<IAuthService, AuthService>();
+            //services.AddScoped<IAuthService, AuthService>();
 
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
