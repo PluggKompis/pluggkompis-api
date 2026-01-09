@@ -1,4 +1,4 @@
-﻿namespace Domain.Models.Users
+namespace Domain.Models.Users
 {
     public class User
     {

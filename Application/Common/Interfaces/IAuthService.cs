@@ -1,4 +1,4 @@
-﻿using Application.Auth.Dtos;
+using Application.Auth.Dtos;
 using Domain.Models.Common;
 
 namespace Application.Common.Interfaces

@@ -1,4 +1,4 @@
-﻿namespace Application.Auth.Dtos
+namespace Application.Auth.Dtos
 {
     public class RegisterUserDto
     {

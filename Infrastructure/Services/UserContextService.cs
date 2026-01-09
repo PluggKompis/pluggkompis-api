@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 

@@ -1,4 +1,4 @@
-﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces;
 using Infrastructure.Configuration;
 using Infrastructure.Database;
 using Infrastructure.Database.Seeding;
