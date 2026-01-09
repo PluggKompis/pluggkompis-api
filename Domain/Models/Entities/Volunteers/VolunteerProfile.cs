@@ -15,5 +15,11 @@ namespace Domain.Models.Entities.Volunteers
 
         public Guid? PreferredVenueId { get; set; }
         public Venue? PreferredVenue { get; set; }
+
+        public Guid VenueId { get; set; } // Which venue they're volunteering for (required)
+        public Venue Venue { get; set; } = default!;
+
+        public bool IsApproved { get; set; } // Approval status
+        public DateTime CreatedAt { get; set; }
     }
 }

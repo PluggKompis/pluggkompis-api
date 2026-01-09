@@ -10,25 +10,24 @@ namespace Domain.Models.Enums
 
     public enum TimeSlotStatus
     {
-        Draft,
         Open,
-        Cancelled,
-        Completed
+        Full,
+        Cancelled
     }
 
     public enum BookingStatus
     {
-        Pending,
         Confirmed,
         Cancelled,
-        NoShow
+        Attended
     }
 
     public enum VolunteerShiftStatus
     {
         Pending,
         Confirmed,
-        Cancelled
+        Cancelled,
+        Competed
     }
 
     public enum VolunteerApplicationStatus

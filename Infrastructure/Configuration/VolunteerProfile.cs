@@ -21,8 +21,18 @@ namespace Infrastructure.Configuration
                   .HasForeignKey<VolunteerProfile>(x => x.VolunteerId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            entity.Property(x => x.IsApproved).IsRequired();
+            entity.Property(x => x.CreatedAt).IsRequired();
+
+            entity.HasOne(x => x.Venue)
+                  .WithMany() // Venue doesn't need navigation back
+                  .HasForeignKey(x => x.VenueId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
             // Index
             entity.HasIndex(x => x.PreferredVenueId);
+            entity.HasIndex(x => x.VenueId);
+            entity.HasIndex(x => x.IsApproved);
         }
     }
 }

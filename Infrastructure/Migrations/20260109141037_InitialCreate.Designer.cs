@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260109115806_InitialCreate")]
+    [Migration("20260109141037_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -305,10 +305,16 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Experience")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("MaxHoursPerWeek")
                         .HasColumnType("int");
@@ -316,9 +322,16 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("PreferredVenueId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("VolunteerId");
 
+                    b.HasIndex("IsApproved");
+
                     b.HasIndex("PreferredVenueId");
+
+                    b.HasIndex("VenueId");
 
                     b.ToTable("VolunteerProfiles");
                 });
@@ -496,6 +509,12 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("PreferredVenueId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Domain.Models.Entities.Venues.Venue", "Venue")
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Models.Entities.Users.User", "Volunteer")
                         .WithOne("VolunteerProfile")
                         .HasForeignKey("Domain.Models.Entities.Volunteers.VolunteerProfile", "VolunteerId")
@@ -503,6 +522,8 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PreferredVenue");
+
+                    b.Navigation("Venue");
 
                     b.Navigation("Volunteer");
                 });

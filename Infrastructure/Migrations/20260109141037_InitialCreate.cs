@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -162,7 +162,10 @@ namespace Infrastructure.Migrations
                     Bio = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     Experience = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     MaxHoursPerWeek = table.Column<int>(type: "int", nullable: true),
-                    PreferredVenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    PreferredVenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -179,6 +182,12 @@ namespace Infrastructure.Migrations
                         principalTable: "Venues",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_VolunteerProfiles_Venues_VenueId",
+                        column: x => x.VenueId,
+                        principalTable: "Venues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -357,9 +366,19 @@ namespace Infrastructure.Migrations
                 column: "CoordinatorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VolunteerProfiles_IsApproved",
+                table: "VolunteerProfiles",
+                column: "IsApproved");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VolunteerProfiles_PreferredVenueId",
                 table: "VolunteerProfiles",
                 column: "PreferredVenueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerProfiles_VenueId",
+                table: "VolunteerProfiles",
+                column: "VenueId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VolunteerShifts_Status",
