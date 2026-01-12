@@ -20,8 +20,6 @@ namespace Infrastructure
                 configuration.GetSection("JwtSettings")
             );
 
-            //services.AddScoped<IAuthService, AuthService>();
-
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
@@ -34,7 +32,8 @@ namespace Infrastructure
             });
 
 
-            // Register generic repository
+            // Register repository
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             // Seeding
@@ -43,6 +42,11 @@ namespace Infrastructure
 
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             DataSeeder.SeedAsync(db).GetAwaiter().GetResult(); // ✅ sync-safe
+
+            // Auth services
+            services.AddScoped<ITokenService, JwtTokenService>();
+            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 
 
             services.AddHttpContextAccessor();
