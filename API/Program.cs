@@ -17,7 +17,7 @@ namespace API
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
 
-            //builder.Services.AddJwtAuthentication(builder.Configuration);
+            builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddSwaggerWithJwtAuth();
 
             builder.Services.AddControllers();

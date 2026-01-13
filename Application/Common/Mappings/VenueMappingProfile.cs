@@ -11,7 +11,10 @@ namespace Application.Common.Mappings
             // Venue → VenueDto
             CreateMap<Venue, VenueDto>()
                 .ForMember(dest => dest.CoordinatorName,
-                    opt => opt.MapFrom(src => $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"))
+                    opt => opt.MapFrom(src =>
+                        src.Coordinator != null
+                            ? $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"
+                            : "Unknown Coordinator"))  
                 .ForMember(dest => dest.AvailableSubjects,
                     opt => opt.MapFrom(src => src.TimeSlots
                         .SelectMany(ts => ts.Subjects)
@@ -27,7 +30,10 @@ namespace Application.Common.Mappings
             // Venue → VenueDetailDto
             CreateMap<Venue, VenueDetailDto>()
                 .ForMember(dest => dest.CoordinatorName,
-                    opt => opt.MapFrom(src => $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"));
+                    opt => opt.MapFrom(src =>
+                        src.Coordinator != null
+                            ? $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"
+                            : "Unknown Coordinator"));  
         }
     }
 }

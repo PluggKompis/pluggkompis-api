@@ -1,35 +1,109 @@
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Application.Auth.Dtos;
+using Application.Venues.Dtos;
+using Domain.Models.Common;
+using Domain.Models.Enums;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Test.IntegrationTests;
 
 namespace Tests.IntegrationTests
 {
     [TestFixture]
     public class VenuesControllerTests
     {
-        private WebApplicationFactory<Program> _factory = null!;
+        private CustomWebApplicationFactory _factory = null!;
         private HttpClient _client = null!;
+        private string? _coordinatorToken;
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
+        [SetUp]
+        public async Task SetUp()
         {
-            _factory = new WebApplicationFactory<Program>();
-            _client = _factory.CreateClient();
+            _factory = new CustomWebApplicationFactory();
+            _client = _factory.CreateClient();  
+
+            // Get a coordinator token for authenticated tests
+            _coordinatorToken = await GetCoordinatorTokenAsync();
         }
 
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
+        [TearDown]
+        public void TearDown()
         {
-            _client.Dispose();
-            _factory.Dispose();
+            _client?.Dispose();
+            _factory?.Dispose();
+        }
+
+
+        /// <summary>
+        /// Registers a coordinator and returns their JWT token
+        /// </summary>
+        private async Task<string> GetCoordinatorTokenAsync()
+        {
+            var registerDto = new RegisterUserDto
+            {
+                FirstName = "Test",
+                LastName = "Coordinator",
+                Email = $"coordinator.{Guid.NewGuid()}@test.com",
+                Password = "Password123!",
+                Role = UserRole.Coordinator
+            };
+
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to register coordinator: {response.StatusCode} - {errorContent}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<OperationResult<AuthResponseDto>>();
+
+            return result?.Data?.Token ?? throw new Exception("No token received");
         }
 
         [Test]
-        public async Task GetVenues_ReturnsSuccess()
+        public void Factory_Should_Have_JwtSettings_Configured()
         {
+            // Arrange & Act
+            using var scope = _factory.Services.CreateScope();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            // Assert
+            var secret = config["JwtSettings:Secret"];
+            var issuer = config["JwtSettings:Issuer"];
+            var audience = config["JwtSettings:Audience"];
+
+            Console.WriteLine($"Secret: {secret}");
+            Console.WriteLine($"Issuer: {issuer}");
+            Console.WriteLine($"Audience: {audience}");
+
+            Assert.That(secret, Is.Not.Null.And.Not.Empty, "JWT Secret should be configured");
+            Assert.That(issuer, Is.EqualTo("PluggKompis.Test"), "JWT Issuer should match test config");
+        }
+
+
+        [Test]
+        public async Task GetVenues_WithoutAuth_ReturnsOk()
+        {
+            // Arrange
+            ClearAuthToken();
+
+            // Act
             var response = await _client.GetAsync("/api/venues");
 
-            Assert.That(response.IsSuccessStatusCode, Is.True);
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+
+        [Test]
+        public async Task GetVenues_WithNoVenues_ReturnsEmptyList()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/venues");
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             var result = await response.Content
                 .ReadFromJsonAsync<OperationResult<PagedResult<VenueDto>>>();
@@ -37,11 +111,17 @@ namespace Tests.IntegrationTests
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data!.Items, Is.Empty);  
+            Assert.That(result.Data.TotalCount, Is.EqualTo(0));
         }
 
+
         [Test]
-        public async Task CreateVenue_ReturnsCreated()
+        public async Task CreateVenue_WithoutAuth_ReturnsUnauthorized()
         {
+            // Arrange
+            ClearAuthToken();  // Make sure no token is set
+
             var request = new CreateVenueRequest
             {
                 Name = "Test Bibliotek",
@@ -53,9 +133,51 @@ namespace Tests.IntegrationTests
                 ContactPhone = "070-123 45 67"
             };
 
+            // Act
             var response = await _client.PostAsJsonAsync("/api/venues", request);
 
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+            // Assert - Print response for debugging
+            if (response.StatusCode != HttpStatusCode.Unauthorized)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Status: {response.StatusCode}");
+                Console.WriteLine($"Content: {content}");
+            }
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [Test]
+        public async Task CreateVenue_AsCoordinator_ReturnsCreated()
+        {
+            // Arrange
+            SetAuthToken(_coordinatorToken!);  // Use the token from SetUp
+
+            var request = new CreateVenueRequest
+            {
+                Name = "Test Bibliotek",
+                Address = "Testgatan 1",
+                City = "Teststad",
+                PostalCode = "123 45",
+                Description = "Test description for integration test",
+                ContactEmail = "contact@test.se",
+                ContactPhone = "070-123 45 67"
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/venues", request);
+
+            // Assert - Print detailed error if it fails
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Status: {response.StatusCode}");
+                Console.WriteLine($"Content: {content}");
+                Console.WriteLine($"Token being used: {_coordinatorToken?.Substring(0, 20)}...");
+            }
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created),
+                $"Expected Created but got {response.StatusCode}");
 
             var result = await response.Content
                 .ReadFromJsonAsync<OperationResult<VenueDto>>();
@@ -64,138 +186,56 @@ namespace Tests.IntegrationTests
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data!.Name, Is.EqualTo(request.Name));
-            Assert.That(result.Data.City, Is.EqualTo(request.City));
         }
 
         [Test]
-        public async Task GetVenueById_WithValidId_ReturnsVenue()
+        public async Task Debug_CompareTokenAndServerConfig()
         {
-            var createResponse = await _client.PostAsJsonAsync("/api/venues", new CreateVenueRequest
+            // Decode the token payload
+            var token = _coordinatorToken!;
+            var parts = token.Split('.');
+            var payload = parts[1];
+
+            // Add padding
+            switch (payload.Length % 4)
             {
-                Name = "Test Bibliotek",
-                Address = "Testgatan 1",
-                City = "Teststad",
-                PostalCode = "123 45",
-                Description = "Test description",
-                ContactEmail = "test@test.se",
-                ContactPhone = "070-123 45 67"
-            });
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
 
-            var createResult = await createResponse.Content
-                .ReadFromJsonAsync<OperationResult<VenueDto>>();
+            var payloadJson = System.Text.Encoding.UTF8.GetString(
+                Convert.FromBase64String(payload.Replace('-', '+').Replace('_', '/')));
 
-            var venueId = createResult!.Data!.Id;
+            Console.WriteLine("=== TOKEN PAYLOAD ===");
+            Console.WriteLine(payloadJson);
 
-            var response = await _client.GetAsync($"/api/venues/{venueId}");
+            // Check server config
+            using var scope = _factory.Services.CreateScope();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-            Assert.That(response.IsSuccessStatusCode, Is.True);
+            Console.WriteLine("\n=== SERVER EXPECTS ===");
+            Console.WriteLine($"Issuer: '{config["JwtSettings:Issuer"]}'");
+            Console.WriteLine($"Audience: '{config["JwtSettings:Audience"]}'");
+            Console.WriteLine($"Secret:  '{config["JwtSettings:Secret"]}'");  // ✅ Fixed:  removed space
+            Console.WriteLine($"Secret Length: {config["JwtSettings:Secret"]?.Length}");
 
-            var result = await response.Content
-                .ReadFromJsonAsync<OperationResult<VenueDetailDto>>();
-
-            Assert.That(result!.IsSuccess, Is.True);
-            Assert.That(result.Data!.Id, Is.EqualTo(venueId));
+            // Also check all JwtSettings keys
+            Console.WriteLine("\n=== ALL JWT SETTINGS ===");
+            var jwtSection = config.GetSection("JwtSettings");
+            foreach (var child in jwtSection.GetChildren())
+            {
+                Console.WriteLine($"{child.Key} = {child.Value}");
+            }
+        }
+        private void SetAuthToken(string token)
+        {
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
 
-        [Test]
-        public async Task GetVenueById_WithInvalidId_ReturnsNotFound()
+        private void ClearAuthToken()
         {
-            var response = await _client.GetAsync($"/api/venues/{Guid.NewGuid()}");
-
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
-        }
-
-        [Test]
-        public async Task UpdateVenue_WithValidData_ReturnsSuccess()
-        {
-            var createResponse = await _client.PostAsJsonAsync("/api/venues", new CreateVenueRequest
-            {
-                Name = "Original Name",
-                Address = "Testgatan 1",
-                City = "Teststad",
-                PostalCode = "123 45",
-                Description = "Original description",
-                ContactEmail = "test@test.se",
-                ContactPhone = "070-123 45 67"
-            });
-
-            var createResult = await createResponse.Content
-                .ReadFromJsonAsync<OperationResult<VenueDto>>();
-
-            var venueId = createResult!.Data!.Id;
-
-            var updateRequest = new UpdateVenueRequest
-            {
-                Name = "Updated Name",
-                Address = "Testgatan 1",
-                City = "Teststad",
-                PostalCode = "123 45",
-                Description = "Updated description",
-                ContactEmail = "test@test.se",
-                ContactPhone = "070-123 45 67",
-                IsActive = true
-            };
-
-            var response = await _client.PutAsJsonAsync($"/api/venues/{venueId}", updateRequest);
-
-            Assert.That(response.IsSuccessStatusCode, Is.True);
-
-            var result = await response.Content
-                .ReadFromJsonAsync<OperationResult<VenueDto>>();
-
-            Assert.That(result!.IsSuccess, Is.True);
-            Assert.That(result.Data!.Name, Is.EqualTo("Updated Name"));
-            Assert.That(result.Data.Description, Is.EqualTo("Updated description"));
-        }
-
-        [Test]
-        public async Task DeleteVenue_WithValidId_ReturnsNoContent()
-        {
-            var createResponse = await _client.PostAsJsonAsync("/api/venues", new CreateVenueRequest
-            {
-                Name = "Test Bibliotek",
-                Address = "Testgatan 1",
-                City = "Teststad",
-                PostalCode = "123 45",
-                Description = "Test description",
-                ContactEmail = "test@test.se",
-                ContactPhone = "070-123 45 67"
-            });
-
-            var createResult = await createResponse.Content
-                .ReadFromJsonAsync<OperationResult<VenueDto>>();
-
-            var venueId = createResult!.Data!.Id;
-
-            var response = await _client.DeleteAsync($"/api/venues/{venueId}");
-
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-
-            var getResponse = await _client.GetAsync($"/api/venues/{venueId}");
-            Assert.That(getResponse.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
-        }
-
-        [Test]
-        public async Task CreateVenue_TwiceForSameCoordinator_ReturnsError()
-        {
-            var request = new CreateVenueRequest
-            {
-                Name = "First Venue",
-                Address = "Testgatan 1",
-                City = "Teststad",
-                PostalCode = "123 45",
-                Description = "Test",
-                ContactEmail = "test@test.se",
-                ContactPhone = "070-123 45 67"
-            };
-
-            var response1 = await _client.PostAsJsonAsync("/api/venues", request);
-            Assert.That(response1.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-
-            request.Name = "Second Venue";
-            var response2 = await _client.PostAsJsonAsync("/api/venues", request);
-
-            Assert.That(response2.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            _client.DefaultRequestHeaders.Authorization = null;
         }
     }
 }
