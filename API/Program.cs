@@ -1,4 +1,3 @@
-
 using API.Helpers;
 using API.Middleware;
 using Application;
@@ -63,3 +62,4 @@ namespace API
         }
     }
 }
+public partial class Program { }

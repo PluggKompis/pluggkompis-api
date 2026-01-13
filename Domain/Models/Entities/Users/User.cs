@@ -16,6 +16,9 @@ namespace Domain.Models.Entities.Users
         public string Email { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
 
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiresAt { get; set; }
+
         public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
