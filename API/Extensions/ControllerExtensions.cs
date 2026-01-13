@@ -37,7 +37,7 @@ namespace API.Extensions
         /// </summary>
         public static IActionResult FromOperationResultNoContent(
             this ControllerBase controller,
-            OperationResult result)  
+            OperationResult result)
         {
             if (result.IsSuccess)
                 return controller.NoContent();

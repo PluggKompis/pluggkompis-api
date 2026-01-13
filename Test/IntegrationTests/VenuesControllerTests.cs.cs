@@ -22,7 +22,7 @@ namespace Tests.IntegrationTests
         public async Task SetUp()
         {
             _factory = new CustomWebApplicationFactory();
-            _client = _factory.CreateClient();  
+            _client = _factory.CreateClient();
 
             // Get a coordinator token for authenticated tests
             _coordinatorToken = await GetCoordinatorTokenAsync();
@@ -111,7 +111,7 @@ namespace Tests.IntegrationTests
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Items, Is.Empty);  
+            Assert.That(result.Data!.Items, Is.Empty);
             Assert.That(result.Data.TotalCount, Is.EqualTo(0));
         }
 

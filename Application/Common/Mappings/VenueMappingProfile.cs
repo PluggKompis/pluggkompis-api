@@ -14,7 +14,7 @@ namespace Application.Common.Mappings
                     opt => opt.MapFrom(src =>
                         src.Coordinator != null
                             ? $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"
-                            : "Unknown Coordinator"))  
+                            : "Unknown Coordinator"))
                 .ForMember(dest => dest.AvailableSubjects,
                     opt => opt.MapFrom(src => src.TimeSlots
                         .SelectMany(ts => ts.Subjects)
@@ -33,7 +33,7 @@ namespace Application.Common.Mappings
                     opt => opt.MapFrom(src =>
                         src.Coordinator != null
                             ? $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"
-                            : "Unknown Coordinator"));  
+                            : "Unknown Coordinator"));
         }
     }
 }
