@@ -1,14 +1,15 @@
-
 using API.Helpers;
 using API.Middleware;
 using Application;
 using Infrastructure;
+using Infrastructure.Database;
+using Infrastructure.Database.Seeding;
 
 namespace API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,7 @@ namespace API
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
 
-            builder.Services.AddJwtAuthentication(builder.Configuration);
+            //builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddSwaggerWithJwtAuth();
 
             builder.Services.AddControllers();
@@ -39,6 +40,14 @@ namespace API
             builder.Logging.AddConsole();
 
             var app = builder.Build();
+
+            // remove the seeder after test
+            if (app.Environment.IsDevelopment())
+            {
+                using var scope = app.Services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await DataSeeder.SeedAsync(context);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -63,3 +72,6 @@ namespace API
         }
     }
 }
+
+// Make Program class accessible for testing
+public partial class Program { }

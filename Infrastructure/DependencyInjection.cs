@@ -21,6 +21,7 @@ namespace Infrastructure
             );
 
             //services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IVenueRepository, VenueRepository>();
 
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
