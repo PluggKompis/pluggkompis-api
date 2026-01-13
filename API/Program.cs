@@ -6,7 +6,7 @@ using Infrastructure;
 
 namespace API
 {
-    public class Program
+    public partial class Program
     {
         public static void Main(string[] args)
         {
@@ -62,5 +62,4 @@ namespace API
             app.Run();
         }
     }
-    public partial class Program { }
 }
