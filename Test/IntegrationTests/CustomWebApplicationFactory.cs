@@ -20,13 +20,10 @@ namespace Test.IntegrationTests
                 // Provide required config for CI/testing (JWT is the common missing one)
                 var testConfig = new Dictionary<string, string?>
                 {
-                    ["Jwt:Issuer"] = "TestIssuer",
-                    ["Jwt:Audience"] = "TestAudience",
-                    // IMPORTANT: must be long enough for HMACSHA256
-                    ["Jwt:SecretKey"] = "THIS_IS_A_TEST_SECRET_KEY_THAT_IS_AT_LEAST_32_CHARS",
-                    ["Jwt:AccessTokenMinutes"] = "60"
+                    ["JwtSettings:Issuer"] = "TestIssuer",
+                    ["JwtSettings:Audience"] = "TestAudience",
+                    ["JwtSettings:Secret"] = "THIS_IS_A_TEST_SECRET_KEY_THAT_IS_AT_LEAST_32_CHARS",
                 };
-
                 config.AddInMemoryCollection(testConfig);
             });
 
