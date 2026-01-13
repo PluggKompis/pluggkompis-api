@@ -19,7 +19,7 @@ namespace Test.IntegrationTests
             var jwtIssuer = "PluggKompis.Test";
             var jwtAudience = "PluggKompis.Test.Users";
 
-            // ✅ Set configuration FIRST
+            // Set configuration FIRST
             builder.UseConfiguration(new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
@@ -45,9 +45,10 @@ namespace Test.IntegrationTests
                 services.AddDbContext<AppDbContext>(options =>
                 {
                     options.UseInMemoryDatabase(Guid.NewGuid().ToString());
+                    Console.WriteLine("Using InMemoryDatabase for integration tests.");
                 });
 
-                // ✅ Reconfigure JWT authentication with test settings
+                // Reconfigure JWT authentication with test settings
                 services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters

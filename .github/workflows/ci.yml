@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
     
     steps:
       - name: Checkout code

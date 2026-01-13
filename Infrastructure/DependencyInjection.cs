@@ -24,19 +24,18 @@ namespace Infrastructure
             services.AddScoped<IVenueRepository, VenueRepository>();
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
-            // ✅ Declare connectionString BEFORE using it
+            // Declare connectionString BEFORE using it
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
                 var interceptor = serviceProvider.GetRequiredService<SaveChangesInterceptor>();
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                // ✅ Only use SQL Server if connection string exists
-                if (!string.IsNullOrEmpty(connectionString))
+                if (env != "Test" && !string.IsNullOrEmpty(connectionString))
                 {
                     options.UseSqlServer(connectionString);
                 }
-                // Otherwise, the test factory will configure in-memory database
 
                 options.AddInterceptors(interceptor);
             });
@@ -44,15 +43,6 @@ namespace Infrastructure
             // Register repository
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-            // ✅ Only seed if using real SQL Server (not in-memory/tests)
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                using var provider = services.BuildServiceProvider();
-                using var scope = provider.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                DataSeeder.SeedAsync(db).GetAwaiter().GetResult();
-            }
 
             // Auth services
             services.AddScoped<ITokenService, JwtTokenService>();
