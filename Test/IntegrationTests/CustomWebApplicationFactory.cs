@@ -1,9 +1,13 @@
+using Infrastructure.Configuration;
 using Infrastructure.Database;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Test.IntegrationTests
 {
@@ -15,7 +19,7 @@ namespace Test.IntegrationTests
             var jwtIssuer = "PluggKompis.Test";
             var jwtAudience = "PluggKompis.Test.Users";
 
-            // Set configuration FIRST
+            // ✅ Set configuration FIRST
             builder.UseConfiguration(new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
@@ -37,19 +41,35 @@ namespace Test.IntegrationTests
                     services.Remove(descriptor);
                 }
 
-                // Use a FIXED database name (not Guid) so all requests use the same DB
+                // Add in-memory database
                 services.AddDbContext<AppDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("TestDatabase");  // ✅ Fixed name
+                    options.UseInMemoryDatabase(Guid.NewGuid().ToString());
                 });
 
-                // Build service provider and ensure database is created
+                // ✅ Reconfigure JWT authentication with test settings
+                services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidAudience = jwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtSecret)),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
+                // Ensure database is created
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.EnsureCreated();
             });
         }
-
     }
 }

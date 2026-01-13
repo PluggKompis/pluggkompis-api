@@ -187,46 +187,6 @@ namespace Tests.IntegrationTests
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data!.Name, Is.EqualTo(request.Name));
         }
-
-        [Test]
-        public async Task Debug_CompareTokenAndServerConfig()
-        {
-            // Decode the token payload
-            var token = _coordinatorToken!;
-            var parts = token.Split('.');
-            var payload = parts[1];
-
-            // Add padding
-            switch (payload.Length % 4)
-            {
-                case 2: payload += "=="; break;
-                case 3: payload += "="; break;
-            }
-
-            var payloadJson = System.Text.Encoding.UTF8.GetString(
-                Convert.FromBase64String(payload.Replace('-', '+').Replace('_', '/')));
-
-            Console.WriteLine("=== TOKEN PAYLOAD ===");
-            Console.WriteLine(payloadJson);
-
-            // Check server config
-            using var scope = _factory.Services.CreateScope();
-            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-            Console.WriteLine("\n=== SERVER EXPECTS ===");
-            Console.WriteLine($"Issuer: '{config["JwtSettings:Issuer"]}'");
-            Console.WriteLine($"Audience: '{config["JwtSettings:Audience"]}'");
-            Console.WriteLine($"Secret:  '{config["JwtSettings:Secret"]}'");  // ✅ Fixed:  removed space
-            Console.WriteLine($"Secret Length: {config["JwtSettings:Secret"]?.Length}");
-
-            // Also check all JwtSettings keys
-            Console.WriteLine("\n=== ALL JWT SETTINGS ===");
-            var jwtSection = config.GetSection("JwtSettings");
-            foreach (var child in jwtSection.GetChildren())
-            {
-                Console.WriteLine($"{child.Key} = {child.Value}");
-            }
-        }
         private void SetAuthToken(string token)
         {
             _client.DefaultRequestHeaders.Authorization =
