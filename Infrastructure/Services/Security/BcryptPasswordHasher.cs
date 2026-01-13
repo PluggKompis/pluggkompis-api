@@ -1,6 +1,6 @@
 using Application.Common.Interfaces;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Security
 {
     public class BcryptPasswordHasher : IPasswordHasher
     {

@@ -1,7 +1,7 @@
 using Application.Common.Interfaces;
 using System.Security.Cryptography;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Security
 {
     public class RefreshTokenGenerator : IRefreshTokenGenerator
     {
