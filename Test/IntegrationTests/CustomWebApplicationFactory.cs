@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Test.IntegrationTests
 {
@@ -13,17 +14,17 @@ namespace Test.IntegrationTests
     {
         private SqliteConnection? _connection;
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.ConfigureAppConfiguration((context, config) =>
+            builder.ConfigureAppConfiguration(config =>
             {
-                // Provide required config for CI/testing (JWT is the common missing one)
                 var testConfig = new Dictionary<string, string?>
                 {
                     ["JwtSettings:Issuer"] = "TestIssuer",
                     ["JwtSettings:Audience"] = "TestAudience",
                     ["JwtSettings:Secret"] = "THIS_IS_A_TEST_SECRET_KEY_THAT_IS_AT_LEAST_32_CHARS",
                 };
+
                 config.AddInMemoryCollection(testConfig);
             });
 
@@ -36,19 +37,22 @@ namespace Test.IntegrationTests
                 if (descriptor != null)
                     services.Remove(descriptor);
 
-                // SQLite in-memory
                 _connection = new SqliteConnection("DataSource=:memory:");
                 _connection.Open();
 
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseSqlite(_connection));
-
-                // Ensure DB created
-                var sp = services.BuildServiceProvider();
-                using var scope = sp.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.Database.EnsureCreated();
             });
+
+            var host = builder.Build();
+
+            // Ensure DB created AFTER host is built
+            using var scope = host.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.EnsureCreated();
+
+            host.Start();
+            return host;
         }
 
         protected override void Dispose(bool disposing)
