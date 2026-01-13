@@ -1,24 +1,30 @@
+using Domain.Models.Enums;
+
 namespace Application.Auth.Dtos
 {
     public class RegisterUserDto
     {
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public string FirstName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        public string Email { get; set; } = default!;
+        public string Password { get; set; } = default!;
+        public UserRole Role { get; set; }
+
     }
 
     public class LoginUserDto
     {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public string Email { get; set; } = default!;
+        public string Password { get; set; } = default!;
     }
 
     public class UserDtoResponse
     {
         public Guid Id { get; set; }
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public List<string> Roles { get; set; } = new();
+        public string Email { get; set; } = default!;
+        public string Role { get; set; } = default!;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
     }
 
     public class AuthResponseDto

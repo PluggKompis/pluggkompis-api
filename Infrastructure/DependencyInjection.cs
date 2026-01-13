@@ -5,6 +5,7 @@ using Infrastructure.Database.Seeding;
 using Infrastructure.Interceptors;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
+using Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +36,8 @@ namespace Infrastructure
             });
 
 
-            // Register generic repository
+            // Register repository
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             // Seeding
@@ -44,6 +46,11 @@ namespace Infrastructure
 
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             DataSeeder.SeedAsync(db).GetAwaiter().GetResult(); // ✅ sync-safe
+
+            // Auth services
+            services.AddScoped<ITokenService, JwtTokenService>();
+            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 
 
             services.AddHttpContextAccessor();
