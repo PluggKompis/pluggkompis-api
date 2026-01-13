@@ -16,17 +16,30 @@ namespace Test.IntegrationTests
 
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.ConfigureAppConfiguration(config =>
+            //builder.ConfigureAppConfiguration(config =>
+            //{
+            //    var testConfig = new Dictionary<string, string?>
+            //    {
+            //        ["JwtSettings:Issuer"] = "TestIssuer",
+            //        ["JwtSettings:Audience"] = "TestAudience",
+            //        ["JwtSettings:Secret"] = "THIS_IS_A_TEST_SECRET_KEY_THAT_IS_AT_LEAST_32_CHARS",
+            //    };
+
+            //    config.AddInMemoryCollection(testConfig);
+            //});
+
+            builder.ConfigureAppConfiguration((context, config) =>
             {
-                var testConfig = new Dictionary<string, string?>
+                // Add test configuration
+                config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
+                    ["JwtSettings:Secret"] = "YourTestSecretKeyThatIsAtLeast32CharactersLong!",
                     ["JwtSettings:Issuer"] = "TestIssuer",
                     ["JwtSettings:Audience"] = "TestAudience",
-                    ["JwtSettings:Secret"] = "THIS_IS_A_TEST_SECRET_KEY_THAT_IS_AT_LEAST_32_CHARS",
-                };
-
-                config.AddInMemoryCollection(testConfig);
+                    ["JwtSettings:ExpirationInMinutes"] = "60"
+                });
             });
+
 
             builder.ConfigureServices(services =>
             {
