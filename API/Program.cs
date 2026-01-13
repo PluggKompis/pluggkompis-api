@@ -62,4 +62,5 @@ namespace API
             app.Run();
         }
     }
+    public partial class Program { }
 }
