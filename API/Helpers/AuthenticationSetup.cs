@@ -13,6 +13,18 @@ namespace API.Helpers
                 .GetSection("JwtSettings")
                 .Get<JwtSettings>();
 
+            if (jwtSettings is null)
+                throw new InvalidOperationException("Missing configuration section 'JwtSettings'.");
+
+            if (string.IsNullOrWhiteSpace(jwtSettings.Issuer))
+                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Issuer'.");
+
+            if (string.IsNullOrWhiteSpace(jwtSettings.Audience))
+                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Audience'.");
+
+            if (string.IsNullOrWhiteSpace(jwtSettings.Secret))
+                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Secret'.");
+
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
             services.AddAuthentication(options =>
