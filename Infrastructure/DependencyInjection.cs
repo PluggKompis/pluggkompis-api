@@ -21,35 +21,33 @@ namespace Infrastructure
                 configuration.GetSection("JwtSettings")
             );
 
+            services.AddScoped<IVenueRepository, VenueRepository>();
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
+
+            // Declare connectionString BEFORE using it
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
                 var interceptor = serviceProvider.GetRequiredService<SaveChangesInterceptor>();
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                if (env != "Test" && !string.IsNullOrEmpty(connectionString))
+                {
+                    options.UseSqlServer(connectionString);
+                }
 
                 options.AddInterceptors(interceptor);
             });
-
 
             // Register repository
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            // Seeding
-            using var provider = services.BuildServiceProvider();
-            using var scope = provider.CreateScope();
-
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            DataSeeder.SeedAsync(db).GetAwaiter().GetResult(); // ✅ sync-safe
-
             // Auth services
             services.AddScoped<ITokenService, JwtTokenService>();
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-
-
             services.AddHttpContextAccessor();
             services.AddScoped<IUserContextService, UserContextService>();
 

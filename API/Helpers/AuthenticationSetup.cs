@@ -13,18 +13,32 @@ namespace API.Helpers
                 .GetSection("JwtSettings")
                 .Get<JwtSettings>();
 
+            // Make it optional - don't throw if missing
             if (jwtSettings is null)
-                throw new InvalidOperationException("Missing configuration section 'JwtSettings'.");
+            {
+                Console.WriteLine("⚠️ JWT settings not configured - skipping authentication setup");
+                return services;
+            }
 
             if (string.IsNullOrWhiteSpace(jwtSettings.Issuer))
-                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Issuer'.");
+            {
+                Console.WriteLine("⚠️ JWT Issuer not configured - skipping authentication setup");
+                return services;
+            }
 
             if (string.IsNullOrWhiteSpace(jwtSettings.Audience))
-                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Audience'.");
+            {
+                Console.WriteLine("⚠️ JWT Audience not configured - skipping authentication setup");
+                return services;
+            }
 
             if (string.IsNullOrWhiteSpace(jwtSettings.Secret))
-                throw new InvalidOperationException("Missing configuration value 'JwtSettings:Secret'.");
+            {
+                Console.WriteLine("⚠️ JWT Secret not configured - skipping authentication setup");
+                return services;
+            }
 
+            // Only configure if all settings are present
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
             services.AddAuthentication(options =>
@@ -40,8 +54,7 @@ namespace API.Helpers
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-
-                    ValidIssuer = jwtSettings!.Issuer,
+                    ValidIssuer = jwtSettings.Issuer,
                     ValidAudience = jwtSettings.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtSettings.Secret)

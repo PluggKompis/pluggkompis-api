@@ -9,6 +9,9 @@ namespace API.Extensions
     /// </summary>
     public static class ControllerExtensions
     {
+        /// <summary>
+        /// Handles generic OperationResult<T> for operations that return data
+        /// </summary>
         public static IActionResult FromOperationResult<T>(
             this ControllerBase controller,
             OperationResult<T> result,
@@ -29,9 +32,12 @@ namespace API.Extensions
                 : controller.BadRequest(result);
         }
 
+        /// <summary>
+        /// Handles non-generic OperationResult for NoContent operations (like Delete)
+        /// </summary>
         public static IActionResult FromOperationResultNoContent(
             this ControllerBase controller,
-            OperationResult<bool> result)
+            OperationResult result)
         {
             if (result.IsSuccess)
                 return controller.NoContent();
