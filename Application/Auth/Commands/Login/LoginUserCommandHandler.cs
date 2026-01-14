@@ -2,55 +2,60 @@ using Application.Auth.Dtos;
 using Application.Common.Interfaces;
 using AutoMapper;
 using Domain.Models.Common;
-using Domain.Models.Entities.Users;
 using MediatR;
-using System.Linq.Expressions;
 
 namespace Application.Auth.Commands.Login
 {
-    public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, OperationResult<AuthResponseDto>>
+    public class LoginUserCommandHandler
+        : IRequestHandler<LoginUserCommand, OperationResult<AuthResponseDto>>
     {
-        private readonly IGenericRepository<User> _users;
+        private readonly IAuthRepository _authRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IMapper _mapper;
 
         public LoginUserCommandHandler(
-            IGenericRepository<User> users,
+            IAuthRepository authRepository,
             IPasswordHasher passwordHasher,
             ITokenService tokenService,
             IRefreshTokenGenerator refreshTokenGenerator,
             IMapper mapper)
         {
-            _users = users;
+            _authRepository = authRepository;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
             _refreshTokenGenerator = refreshTokenGenerator;
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<AuthResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<AuthResponseDto>> Handle(
+            LoginUserCommand request,
+            CancellationToken ct)
         {
-            Expression<Func<User, bool>> predicate = u => u.Email == request.Dto.Email;
-            var user = (await _users.FindAsync(predicate)).FirstOrDefault();
+            var dto = request.Dto;
 
+            var user = await _authRepository.GetByEmailAsync(dto.Email, ct);
             if (user is null)
                 return OperationResult<AuthResponseDto>.Failure("Invalid credentials.");
 
             if (!user.IsActive)
                 return OperationResult<AuthResponseDto>.Failure("User is inactive.");
 
-            if (!_passwordHasher.Verify(request.Dto.Password, user.PasswordHash))
+            var passwordValid = _passwordHasher.Verify(dto.Password, user.PasswordHash);
+            if (!passwordValid)
                 return OperationResult<AuthResponseDto>.Failure("Invalid credentials.");
 
-            // rotate refresh token on login
+            // Rotate refresh token on login
             var (refreshToken, expiresAt) = _refreshTokenGenerator.Generate();
-
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiresAt = expiresAt;
 
-            await _users.UpdateAsync(user);
+            await _authRepository.UpdateAsync(user, ct);
+
+            var rows = await _authRepository.SaveChangesAsync(ct);
+            if (rows <= 0)
+                return OperationResult<AuthResponseDto>.Failure("Failed to persist login changes.");
 
             var token = _tokenService.GenerateJwt(user);
 
@@ -63,6 +68,5 @@ namespace Application.Auth.Commands.Login
 
             return OperationResult<AuthResponseDto>.Success(response);
         }
-
     }
 }
