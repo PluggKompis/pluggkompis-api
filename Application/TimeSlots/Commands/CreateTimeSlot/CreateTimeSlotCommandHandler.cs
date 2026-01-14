@@ -52,7 +52,7 @@ namespace Application.TimeSlots.Commands.CreateTimeSlot
 
             if (hasOverlap)
             {
-               return OperationResult<TimeSlotDto>.Failure($"TimeSlot overlaps with existing timeslot on {command.Request.DayOfWeek}");
+                return OperationResult<TimeSlotDto>.Failure($"TimeSlot overlaps with existing timeslot on {command.Request.DayOfWeek}");
             }
 
             // Create TimeSlot entity

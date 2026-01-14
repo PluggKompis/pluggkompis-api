@@ -13,7 +13,7 @@ namespace API.Controllers
     /// <summary>
     /// Manages TimeSlot CRUD operations (Coordinator only)
     /// </summary>
-    
+
     [Route("api/[controller]")]
     [ApiController]
     public class TimeSlotsController : ControllerBase

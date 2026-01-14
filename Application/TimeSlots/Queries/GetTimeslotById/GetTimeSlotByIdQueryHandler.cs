@@ -25,7 +25,7 @@ namespace Application.TimeSlots.Queries.GetTimeslotById
             // Get timeslot with all details
             var timeSlot = await _timeSlotRepository.GetByIdWithDetailsAsync(request.TimeSlotId);
 
-            if(timeSlot == null)
+            if (timeSlot == null)
             {
                 return OperationResult<TimeSlotDto>.Failure("TimeSlot not found.");
             }

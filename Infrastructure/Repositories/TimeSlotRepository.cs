@@ -60,7 +60,7 @@ namespace Infrastructure.Repositories
             var query = _context.TimeSlots
                 .Where(ts => ts.VenueId == venueId
                     && ts.DayOfWeek == dayOfWeek
-                    && activeStatuses.Contains(ts.Status));  
+                    && activeStatuses.Contains(ts.Status));
 
             if (excludeTimeSlotId.HasValue)
             {

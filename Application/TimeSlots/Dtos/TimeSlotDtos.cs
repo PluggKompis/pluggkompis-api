@@ -34,7 +34,7 @@ namespace Application.TimeSlots.Dtos
         public int MaxStudents { get; set; }
         public bool IsRecurring { get; set; } = true; // Default to recurring
         public DateOnly? SpecificDate { get; set; }  // Only if IsRecurring = false
-        public List<Guid> SubjectIds { get; set; } = new();  
+        public List<Guid> SubjectIds { get; set; } = new();
     }
 
     /// <summary>

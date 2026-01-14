@@ -26,7 +26,7 @@ namespace Application.TimeSlots.Commands.UpdateTimeSlot
             // Fetch TimeSlot with Venue details
             var timeSlot = await _timeSlotRepository.GetByIdWithDetailsAsync(command.TimeSlotId);
 
-            if(timeSlot == null)
+            if (timeSlot == null)
             {
                 return OperationResult<TimeSlotDto>.Failure("TimeSlot not found.");
             }
@@ -45,7 +45,7 @@ namespace Application.TimeSlots.Commands.UpdateTimeSlot
                 command.Request.EndTime,
                 command.TimeSlotId);
 
-            if(hasOverlap)
+            if (hasOverlap)
             {
                 return OperationResult<TimeSlotDto>.Failure($"TimeSlot overlaps with existing timeslot on {command.Request.DayOfWeek}");
             }
@@ -61,7 +61,7 @@ namespace Application.TimeSlots.Commands.UpdateTimeSlot
 
             // Update subjects (remove old, add new)
             timeSlot.Subjects.Clear();
-            foreach(var subjectId in command.Request.SubjectIds)
+            foreach (var subjectId in command.Request.SubjectIds)
             {
                 timeSlot.Subjects.Add(new TimeSlotSubject
                 {
