@@ -21,7 +21,6 @@ namespace Infrastructure
                 configuration.GetSection("JwtSettings")
             );
 
-            services.AddScoped<IVenueRepository, VenueRepository>();
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
             // Declare connectionString BEFORE using it
@@ -42,6 +41,8 @@ namespace Infrastructure
 
             // Register repository
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IVenueRepository, VenueRepository>();
+            services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             // Auth services
