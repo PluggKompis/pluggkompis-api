@@ -13,6 +13,7 @@ namespace Test.IntegrationTests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
+        private readonly string _dbName = Guid.NewGuid().ToString();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             var jwtSecret = "ThisIsATestSecretKeyForJWTTokensMinimum32CharactersLong!!!";
@@ -44,7 +45,7 @@ namespace Test.IntegrationTests
                 // Add in-memory database
                 services.AddDbContext<AppDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase(Guid.NewGuid().ToString());
+                    options.UseInMemoryDatabase(_dbName);
                     Console.WriteLine("Using InMemoryDatabase for integration tests.");
                 });
 

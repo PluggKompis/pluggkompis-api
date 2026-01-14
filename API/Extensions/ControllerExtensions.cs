@@ -24,12 +24,17 @@ namespace API.Extensions
                     : controller.Ok(result);
             }
 
-            var hasNotFound = result.Errors.Any(e =>
-                e.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            if (result.Errors.Any(e => e.Contains("forbidden", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.StatusCode(StatusCodes.Status403Forbidden, result);
+            }
 
-            return hasNotFound
-                ? controller.NotFound(result)
-                : controller.BadRequest(result);
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.NotFound(result);
+            }
+
+            return controller.BadRequest(result);
         }
 
         /// <summary>
