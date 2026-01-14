@@ -2,7 +2,7 @@ using Domain.Models.Entities.Users;
 
 namespace Application.Common.Interfaces
 {
-    public interface IUserRepository
+    public interface IAuthRepository
     {
         Task<bool> EmailExistsAsync(string email, CancellationToken ct = default);
 
@@ -14,6 +14,6 @@ namespace Application.Common.Interfaces
 
         Task UpdateAsync(User user, CancellationToken ct = default);
 
-        Task SaveChangesAsync(CancellationToken ct = default);
+        Task<int> SaveChangesAsync(CancellationToken ct = default);
     }
 }

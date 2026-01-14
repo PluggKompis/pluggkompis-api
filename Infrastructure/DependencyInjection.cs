@@ -41,7 +41,7 @@ namespace Infrastructure
             });
 
             // Register repository
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             // Auth services

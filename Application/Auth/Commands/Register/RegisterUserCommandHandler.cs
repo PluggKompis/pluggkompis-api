@@ -4,44 +4,40 @@ using AutoMapper;
 using Domain.Models.Common;
 using Domain.Models.Entities.Users;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Auth.Commands.Register
 {
-    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, OperationResult<AuthResponseDto>>
+    public class RegisterUserCommandHandler
+        : IRequestHandler<RegisterUserCommand, OperationResult<AuthResponseDto>>
     {
-        private readonly IGenericRepository<User> _users;
+        private readonly IAuthRepository _authRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IMapper _mapper;
 
         public RegisterUserCommandHandler(
-            IGenericRepository<User> users,
+            IAuthRepository authRepository,
             IPasswordHasher passwordHasher,
             ITokenService tokenService,
             IRefreshTokenGenerator refreshTokenGenerator,
             IMapper mapper)
         {
-            _users = users;
+            _authRepository = authRepository;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
             _refreshTokenGenerator = refreshTokenGenerator;
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<AuthResponseDto>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<AuthResponseDto>> Handle(
+            RegisterUserCommand request,
+            CancellationToken ct)
         {
-            // Business rule: unique email
-            Expression<Func<User, bool>> emailPredicate = u => u.Email == request.Dto.Email;
-            var existing = (await _users.FindAsync(emailPredicate)).FirstOrDefault();
+            var email = request.Dto.Email;
 
-            if (existing is not null)
+            var emailExists = await _authRepository.EmailExistsAsync(email, ct);
+            if (emailExists)
                 return OperationResult<AuthResponseDto>.Failure("Email already exists.");
 
             var user = _mapper.Map<User>(request.Dto);
@@ -54,7 +50,11 @@ namespace Application.Auth.Commands.Register
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiresAt = expiresAt;
 
-            await _users.AddAsync(user);
+            await _authRepository.AddAsync(user, ct);
+
+            var rows = await _authRepository.SaveChangesAsync(ct);
+            if (rows <= 0)
+                return OperationResult<AuthResponseDto>.Failure("Failed to persist user.");
 
             var token = _tokenService.GenerateJwt(user);
 
