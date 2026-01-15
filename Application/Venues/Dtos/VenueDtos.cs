@@ -1,3 +1,4 @@
+using Application.TimeSlots.Dtos;
 using Domain.Models.Enums;
 
 namespace Application.Venues.Dtos
@@ -64,20 +65,7 @@ namespace Application.Venues.Dtos
         public List<VolunteerSummaryDto> Volunteers { get; set; } = new();
     }
 
-    // Remove the two placeholders below when TimeSlot and Voluteer features are implemented
-    /// <summary>
-    /// Placeholder for TimeSlot & Volunteer summary data (will be fully implemented in TimeSlot & Volunteer feature)
-    /// </summary>
-    public class TimeSlotDto
-    {
-        public Guid Id { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public int MaxStudents { get; set; }
-        public List<string> Subjects { get; set; } = new();
-    }
-
+    // Remove the placeholder below when Voluteer features are implemented
     public class VolunteerSummaryDto
     {
         public Guid VolunteerId { get; set; }

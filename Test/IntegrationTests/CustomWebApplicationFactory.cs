@@ -1,4 +1,3 @@
-using Infrastructure.Configuration;
 using Infrastructure.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;

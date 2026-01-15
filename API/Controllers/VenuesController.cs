@@ -1,4 +1,5 @@
 using API.Extensions;
+using Application.TimeSlots.Queries.GetTimeSlotsByVenue;
 using Application.Venues.Commands.CreateVenue;
 using Application.Venues.Commands.DeleteVenue;
 using Application.Venues.Commands.UpdateVenue;
@@ -111,6 +112,17 @@ namespace API.Controllers
             var result = await _mediator.Send(command);
 
             return this.FromOperationResultNoContent(result);
+        }
+
+        /// <summary>
+        /// Get all TimeSlots for a venue (public access)
+        /// </summary>
+        [HttpGet("{venueId}/timeslots")]
+        public async Task<IActionResult> GetVenueTimeslots(Guid venueId, [FromQuery] bool includeCancelled = false)
+        {
+            var query = new GetTimeSlotsByVenueQuery(venueId, includeCancelled);
+            var result = await _mediator.Send(query);
+            return this.FromOperationResult(result);
         }
     }
 }
