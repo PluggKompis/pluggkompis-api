@@ -1,7 +1,6 @@
 using Application.Common.Interfaces;
 using Infrastructure.Configuration;
 using Infrastructure.Database;
-using Infrastructure.Database.Seeding;
 using Infrastructure.Interceptors;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
