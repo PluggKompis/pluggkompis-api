@@ -30,8 +30,8 @@ namespace API.Controllers
             return this.FromOperationResult(result);
         }
 
-        [HttpPut("me")]
-        public async Task<IActionResult> UpdateMe([FromBody] UpdateMyProfileDto dto)
+        [HttpPatch("me")]
+        public async Task<IActionResult> PatchMe([FromBody] UpdateMyProfileDto dto)
         {
             var userId = User.GetUserId();
             var result = await _mediator.Send(new UpdateMyProfileCommand(userId, dto));

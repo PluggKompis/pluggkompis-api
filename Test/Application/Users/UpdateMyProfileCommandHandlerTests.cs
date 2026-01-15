@@ -13,7 +13,6 @@ namespace Test.Application.Users
         private IGenericRepository<User> _users = default!;
         private IAuthRepository _authRepo = default!;
         private IMapper _mapper = default!;
-
         private UpdateMyProfileCommandHandler _sut = default!;
 
         [SetUp]
@@ -27,53 +26,37 @@ namespace Test.Application.Users
         }
 
         [Test]
-        public async Task Handle_Should_ReturnSuccess_When_UserExists_AndEmailNotTaken()
+        public async Task Handle_Should_UpdateOnlyFirstName_When_OnlyFirstNameProvided()
         {
             // Arrange
             var userId = Guid.NewGuid();
             var user = new User
             {
                 Id = userId,
-                FirstName = "Old",
-                LastName = "Name",
+                FirstName = "OldFirst",
+                LastName = "OldLast",
                 Email = "old@test.com",
                 IsActive = true
             };
 
-            var dto = new UpdateMyProfileDto
-            {
-                FirstName = "New",
-                LastName = "Name",
-                Email = "new@test.com"
-            };
-
-            var mappedDto = new MyProfileDto
-            {
-                Id = userId,
-                FirstName = "New",
-                LastName = "Name",
-                Email = "new@test.com",
-                Role = "Student",
-                IsActive = true
-            };
-
             A.CallTo(() => _users.GetByIdAsync(userId)).Returns(user);
-            A.CallTo(() => _authRepo.EmailExistsAsync("new@test.com", A<CancellationToken>._)).Returns(false);
-            A.CallTo(() => _mapper.Map<MyProfileDto>(A<User>._)).Returns(mappedDto);
 
-            var cmd = new UpdateMyProfileCommand(userId, dto);
+            var cmd = new UpdateMyProfileCommand(userId, new UpdateMyProfileDto
+            {
+                FirstName = " NewFirst "
+            });
 
             // Act
             var result = await _sut.Handle(cmd, CancellationToken.None);
 
             // Assert
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Email, Is.EqualTo("new@test.com"));
+            Assert.That(user.FirstName, Is.EqualTo("NewFirst"));
+            Assert.That(user.LastName, Is.EqualTo("OldLast"));
+            Assert.That(user.Email, Is.EqualTo("old@test.com"));
 
-            Assert.That(user.FirstName, Is.EqualTo("New"));
-            Assert.That(user.LastName, Is.EqualTo("Name"));
-            Assert.That(user.Email, Is.EqualTo("new@test.com"));
+            A.CallTo(() => _authRepo.EmailExistsAsync(A<string>._, A<CancellationToken>._))
+                .MustNotHaveHappened();
 
             A.CallTo(() => _users.UpdateAsync(user)).MustHaveHappenedOnceExactly();
         }
@@ -87,9 +70,7 @@ namespace Test.Application.Users
 
             var cmd = new UpdateMyProfileCommand(userId, new UpdateMyProfileDto
             {
-                FirstName = "New",
-                LastName = "Name",
-                Email = "new@test.com"
+                FirstName = "New"
             });
 
             // Act
@@ -103,15 +84,13 @@ namespace Test.Application.Users
         }
 
         [Test]
-        public async Task Handle_Should_ReturnFailure_When_EmailAlreadyInUse()
+        public async Task Handle_Should_ReturnFailure_When_EmailProvided_AndAlreadyInUse()
         {
             // Arrange
             var userId = Guid.NewGuid();
             var user = new User
             {
                 Id = userId,
-                FirstName = "Old",
-                LastName = "Name",
                 Email = "old@test.com",
                 IsActive = true
             };
@@ -121,8 +100,6 @@ namespace Test.Application.Users
 
             var cmd = new UpdateMyProfileCommand(userId, new UpdateMyProfileDto
             {
-                FirstName = "New",
-                LastName = "Name",
                 Email = "taken@test.com"
             });
 
@@ -134,6 +111,37 @@ namespace Test.Application.Users
             Assert.That(result.Errors, Has.Some.Contains("already in use").IgnoreCase);
 
             A.CallTo(() => _users.UpdateAsync(A<User>._)).MustNotHaveHappened();
+        }
+
+        [Test]
+        public async Task Handle_Should_NotCheckEmailUniqueness_When_EmailProvidedButUnchanged_IgnoringCase()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var user = new User
+            {
+                Id = userId,
+                Email = "Test@Email.com",
+                IsActive = true
+            };
+
+            A.CallTo(() => _users.GetByIdAsync(userId)).Returns(user);
+
+            var cmd = new UpdateMyProfileCommand(userId, new UpdateMyProfileDto
+            {
+                Email = "test@email.com" // casing only
+            });
+
+            // Act
+            var result = await _sut.Handle(cmd, CancellationToken.None);
+
+            // Assert
+            Assert.That(result.IsSuccess, Is.True);
+
+            A.CallTo(() => _authRepo.EmailExistsAsync(A<string>._, A<CancellationToken>._))
+                .MustNotHaveHappened();
+
+            A.CallTo(() => _users.UpdateAsync(user)).MustHaveHappenedOnceExactly();
         }
     }
 }

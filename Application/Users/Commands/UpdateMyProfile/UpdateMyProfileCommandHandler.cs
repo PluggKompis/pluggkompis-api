@@ -4,11 +4,6 @@ using AutoMapper;
 using Domain.Models.Common;
 using Domain.Models.Entities.Users;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Users.Commands.UpdateMyProfile
 {
@@ -35,19 +30,28 @@ namespace Application.Users.Commands.UpdateMyProfile
             if (user is null || !user.IsActive)
                 return OperationResult<MyProfileDto>.Failure("User not found");
 
-            var newEmail = request.Dto.Email.Trim();
+            // FirstName
+            if (request.Dto.FirstName is not null)
+                user.FirstName = request.Dto.FirstName.Trim();
 
-            // if changing email, ensure it's not used by someone else
-            if (!string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase))
+            // LastName
+            if (request.Dto.LastName is not null)
+                user.LastName = request.Dto.LastName.Trim();
+
+            // Email
+            if (request.Dto.Email is not null)
             {
-                var exists = await _authRepo.EmailExistsAsync(newEmail, cancellationToken);
-                if (exists)
-                    return OperationResult<MyProfileDto>.Failure("Email is already in use");
-            }
+                var newEmail = request.Dto.Email.Trim();
 
-            user.FirstName = request.Dto.FirstName.Trim();
-            user.LastName = request.Dto.LastName.Trim();
-            user.Email = newEmail;
+                if (!string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    var exists = await _authRepo.EmailExistsAsync(newEmail, cancellationToken);
+                    if (exists)
+                        return OperationResult<MyProfileDto>.Failure("Email is already in use");
+
+                    user.Email = newEmail;
+                }
+            }
 
             await _users.UpdateAsync(user);
 
