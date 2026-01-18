@@ -18,13 +18,6 @@ namespace Application.Volunteers.Dtos
     public class ApplyToVenueRequest
     {
         public Guid VenueId { get; set; }
-
-        public string Bio { get; set; } = string.Empty;
-        public string Experience { get; set; } = string.Empty;
-
-        public int? MaxHoursPerWeek { get; set; }
-
-        public List<VolunteerSubjectRequest> Subjects { get; set; } = new();
     }
 
     public class VolunteerSubjectRequest
