@@ -18,7 +18,7 @@ namespace Domain.Models.Entities.Venues
 
         public int MaxStudents { get; set; }
         public bool IsRecurring { get; set; }
-        public DateOnly? SpecificDate { get; set; }
+        public DateOnly? SpecificDate { get; set; } // Only used for creating one-off slots, NOT for bookings
 
         public TimeSlotStatus Status { get; set; }
 

@@ -22,8 +22,10 @@ namespace Domain.Models.Entities.Bookings
         public Guid BookedByUserId { get; set; }
         public User BookedByUser { get; set; } = default!;
 
+        public DateTime BookingDate { get; set; } // Local calendar date of this booked session
         public DateTime BookedAt { get; set; }
         public BookingStatus Status { get; set; }
         public string? Notes { get; set; }
+        public DateTime? CancelledAt { get; set; } // When the booking was cancelled, optional
     }
 }
