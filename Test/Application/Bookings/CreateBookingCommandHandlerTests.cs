@@ -112,7 +112,7 @@ namespace Test.UnitTests.Bookings
                 Children = new List<Child>()
             };
 
-            var timeSlot = new TimeSlot 
+            var timeSlot = new TimeSlot
             {
                 Id = timeSlotId,
                 MaxStudents = 10,
@@ -126,10 +126,10 @@ namespace Test.UnitTests.Bookings
                 A<Expression<Func<User, object>>[]>._))
                 .Returns(new[] { parent });
 
-            A.CallTo(() => _timeSlotRepo.GetByIdAsync(timeSlotId)) 
+            A.CallTo(() => _timeSlotRepo.GetByIdAsync(timeSlotId))
                 .Returns(timeSlot);
 
-            A.CallTo(() => _bookingRepo.FindAsync(A<Expression<Func<Booking, bool>>>._)) 
+            A.CallTo(() => _bookingRepo.FindAsync(A<Expression<Func<Booking, bool>>>._))
                 .Returns(new List<Booking>()); // No existing bookings
 
             var request = new CreateBookingRequest
@@ -172,7 +172,7 @@ namespace Test.UnitTests.Bookings
                 }
             };
 
-            var timeSlot = new TimeSlot 
+            var timeSlot = new TimeSlot
             {
                 Id = timeSlotId,
                 MaxStudents = 10,
@@ -186,7 +186,7 @@ namespace Test.UnitTests.Bookings
                 A<Expression<Func<User, object>>[]>._))
                 .Returns(new[] { parent });
 
-            A.CallTo(() => _timeSlotRepo.GetByIdAsync(timeSlotId)) 
+            A.CallTo(() => _timeSlotRepo.GetByIdAsync(timeSlotId))
                 .Returns(timeSlot);
 
             A.CallTo(() => _bookingRepo.FindAsync(A<Expression<Func<Booking, bool>>>._))
