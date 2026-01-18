@@ -43,6 +43,9 @@ namespace Infrastructure
             services.AddScoped<IVenueRepository, VenueRepository>();
             services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
+            services.AddScoped<IVolunteerSubjectRepository, VolunteerSubjectRepository>();
+            services.AddScoped<IVolunteerApplicationRepository, VolunteerApplicationRepository>();
 
             // Auth services
             services.AddScoped<ITokenService, JwtTokenService>();

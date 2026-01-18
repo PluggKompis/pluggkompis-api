@@ -4,6 +4,7 @@ using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116092430_add-volunteerApplication-and-volunteerProfile-adjustment")]
+    partial class addvolunteerApplicationandvolunteerProfileadjustment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,12 +36,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid>("BookedByUserId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ChildId")
                         .HasColumnType("uniqueidentifier");
@@ -68,16 +65,11 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("TimeSlotId");
 
-                    b.HasIndex("TimeSlotId", "BookingDate");
-
                     b.HasIndex("TimeSlotId", "ChildId");
 
                     b.HasIndex("TimeSlotId", "StudentId");
 
-                    b.ToTable("Bookings", t =>
-                        {
-                            t.HasCheckConstraint("CK_Booking_StudentOrChild", "((StudentId IS NOT NULL AND ChildId IS NULL) OR (StudentId IS NULL AND ChildId IS NOT NULL))");
-                        });
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("Domain.Models.Entities.Children.Child", b =>

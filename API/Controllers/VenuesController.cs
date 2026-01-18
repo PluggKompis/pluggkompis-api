@@ -7,6 +7,9 @@ using Application.Venues.Dtos;
 using Application.Venues.Queries.GetMyVenue;
 using Application.Venues.Queries.GetVenueById;
 using Application.Venues.Queries.GetVenues;
+using Application.Venues.Queries.GetVenueVolunteers;
+using Application.Volunteers.Commands.ApplyToVenue;
+using Application.Volunteers.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -123,6 +126,28 @@ namespace API.Controllers
             var query = new GetTimeSlotsByVenueQuery(venueId, includeCancelled);
             var result = await _mediator.Send(query);
             return this.FromOperationResult(result);
+        }
+
+        /// <summary>
+        /// Get Volunteers of the venue ()
+        /// </summary>
+        [HttpGet("{id:guid}/volunteers")]
+        public async Task<IActionResult> GetVolunteers(Guid id)
+        {
+            var result = await _mediator.Send(new GetVenueVolunteersQuery(id));
+            return this.FromOperationResult(result);
+        }
+
+        /// <summary>
+        /// Volunteers applicating for a venue (Volunteer only)
+        /// </summary>
+        [Authorize(Roles = "Volunteer")]
+        [HttpPost("apply")]
+        public async Task<IActionResult> Apply([FromBody] ApplyToVenueRequest request)
+        {
+            var volunteerId = User.GetUserId();
+            var result = await _mediator.Send(new ApplyToVenueCommand(volunteerId, request));
+            return this.FromOperationResult(result, created: true);
         }
     }
 }

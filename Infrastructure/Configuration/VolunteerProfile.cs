@@ -10,29 +10,37 @@ namespace Infrastructure.Configuration
         {
             entity.HasKey(x => x.VolunteerId);
 
-            entity.Property(x => x.Bio).IsRequired().HasMaxLength(2000);
-            entity.Property(x => x.Experience).IsRequired().HasMaxLength(2000);
+            entity.Property(x => x.Bio)
+                .IsRequired()
+                .HasMaxLength(2000);
 
-            entity.Property(x => x.MaxHoursPerWeek).IsRequired(false);
+            entity.Property(x => x.Experience)
+                .IsRequired()
+                .HasMaxLength(2000);
+
+            entity.Property(x => x.MaxHoursPerWeek)
+                .IsRequired(false);
+
+            entity.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            entity.Property(x => x.UpdatedAt)
+                .IsRequired(false);
 
             // 1:1 User <-> VolunteerProfile (PK is FK)
             entity.HasOne(x => x.Volunteer)
-                  .WithOne(u => u.VolunteerProfile)
-                  .HasForeignKey<VolunteerProfile>(x => x.VolunteerId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                .WithOne(u => u.VolunteerProfile)
+                .HasForeignKey<VolunteerProfile>(x => x.VolunteerId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            entity.Property(x => x.IsApproved).IsRequired();
-            entity.Property(x => x.CreatedAt).IsRequired();
+            // Optional preferred venue (preference only)
+            entity.HasOne(x => x.PreferredVenue)
+                .WithMany()
+                .HasForeignKey(x => x.PreferredVenueId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne(x => x.Venue)
-                  .WithMany() // Venue doesn't need navigation back
-                  .HasForeignKey(x => x.VenueId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // Index
+            // Indexes
             entity.HasIndex(x => x.PreferredVenueId);
-            entity.HasIndex(x => x.VenueId);
-            entity.HasIndex(x => x.IsApproved);
         }
     }
 }
