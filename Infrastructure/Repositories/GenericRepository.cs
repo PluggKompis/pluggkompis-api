@@ -31,6 +31,25 @@ namespace Infrastructure.Repositories
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
+        // Support for Include with ThenInclude
+        public async Task<IEnumerable<T>> FindWithIncludesAsync(
+            Expression<Func<T, bool>> predicate,
+            params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            // Apply all includes
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            // Apply the filter predicate
+            query = query.Where(predicate);
+
+            return await query.ToListAsync();
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
