@@ -1,5 +1,4 @@
 using Application.Common.Behaviors;
-using Application.Volunteers.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,10 +16,6 @@ namespace Application
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-
-            // Business logic services
-            services.AddScoped<IVolunteerService, VolunteerService>();
-            services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 
             return services;
         }

@@ -1,5 +1,6 @@
+using Application.Common.Interfaces;
 using Application.Volunteers.Dtos;
-using Application.Volunteers.Services;
+using AutoMapper;
 using Domain.Models.Common;
 using MediatR;
 
@@ -8,14 +9,24 @@ namespace Application.Coordinator.Queries.GetPendingApplications
     public class GetPendingApplicationsQueryHandler
         : IRequestHandler<GetPendingApplicationsQuery, OperationResult<List<VolunteerApplicationDto>>>
     {
-        private readonly IVolunteerService _service;
+        private readonly IVolunteerApplicationRepository _applications;
+        private readonly IMapper _mapper;
 
-        public GetPendingApplicationsQueryHandler(IVolunteerService service)
+        public GetPendingApplicationsQueryHandler(
+            IVolunteerApplicationRepository applications,
+            IMapper mapper)
         {
-            _service = service;
+            _applications = applications;
+            _mapper = mapper;
         }
 
-        public Task<OperationResult<List<VolunteerApplicationDto>>> Handle(GetPendingApplicationsQuery request, CancellationToken cancellationToken)
-            => _service.GetPendingApplicationsForCoordinatorAsync(request.CoordinatorId);
+        public async Task<OperationResult<List<VolunteerApplicationDto>>> Handle(
+            GetPendingApplicationsQuery request,
+            CancellationToken cancellationToken)
+        {
+            var apps = await _applications.GetPendingForCoordinatorAsync(request.CoordinatorId);
+            var dtos = _mapper.Map<List<VolunteerApplicationDto>>(apps);
+            return OperationResult<List<VolunteerApplicationDto>>.Success(dtos);
+        }
     }
 }
