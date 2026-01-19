@@ -1,3 +1,4 @@
+using Application.Subjects.Dtos;
 using Application.Venues.Dtos;
 using AutoMapper;
 using Domain.Models.Entities.Venues;
@@ -19,8 +20,14 @@ namespace Application.Common.Mappings
                 .ForMember(dest => dest.AvailableSubjects,
                     opt => opt.MapFrom(src => src.TimeSlots
                         .SelectMany(ts => ts.Subjects)
-                        .Select(tss => tss.Subject.Name)
-                        .Distinct()
+                        .Select(tss => new SubjectDto
+                        {
+                            Id = tss.Subject.Id,
+                            Name = tss.Subject.Name,
+                            Icon = tss.Subject.Icon
+                        })
+                        .GroupBy(s => s.Id) 
+                        .Select(g => g.First())
                         .ToList()))
                 .ForMember(dest => dest.AvailableDays,
                     opt => opt.MapFrom(src => src.TimeSlots
@@ -44,9 +51,13 @@ namespace Application.Common.Mappings
                         {
                             VolunteerId = va.VolunteerId,
                             VolunteerName = $"{va.Volunteer.FirstName} {va.Volunteer.LastName}",
-                            // User → VolunteerSubjects (join table) → Subject
                             Subjects = va.Volunteer.VolunteerSubjects
-                                .Select(vs => vs.Subject.Name)
+                                .Select(vs => new SubjectDto
+                                {
+                                    Id = vs.Subject.Id,
+                                    Name = vs.Subject.Name,
+                                    Icon = vs.Subject.Icon
+                                })
                                 .ToList()
                         })));
         }
