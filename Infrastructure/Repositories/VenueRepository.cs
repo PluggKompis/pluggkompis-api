@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
 
             // Pagination
             return await query
-                .OrderBy(v => v.Name)  
+                .OrderBy(v => v.Name)
                 .Skip((filters.PageNumber - 1) * filters.PageSize)
                 .Take(filters.PageSize)
                 .ToListAsync();
