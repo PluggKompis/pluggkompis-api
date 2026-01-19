@@ -1,4 +1,5 @@
 using Application.Auth.Dtos;
+using Application.VolunteerShifts.Dtos;
 using Domain.Models.Common;
 using Domain.Models.Entities.Venues;
 using Domain.Models.Entities.Volunteers;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Application.VolunteerShifts.Dtos;
+using Test.IntegrationTests.Extensions;
 
 namespace Test.IntegrationTests
 {
@@ -63,7 +64,7 @@ namespace Test.IntegrationTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             // Verify response envelope
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<VolunteerShiftDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<VolunteerShiftDto>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
