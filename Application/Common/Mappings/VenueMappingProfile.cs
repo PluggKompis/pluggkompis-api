@@ -37,9 +37,9 @@ namespace Application.Common.Mappings
                             : "Unknown Coordinator"))
                 .ForMember(dest => dest.TimeSlots,
                     opt => opt.MapFrom(src => src.TimeSlots))
-                .ForMember(dest => dest.Volunteers, 
+                .ForMember(dest => dest.Volunteers,
                     opt => opt.MapFrom(src => src.VolunteerApplications
-                        .Where(va => va.Status == VolunteerApplicationStatus.Approved)  
+                        .Where(va => va.Status == VolunteerApplicationStatus.Approved)
                         .Select(va => new VolunteerSummaryDto
                         {
                             VolunteerId = va.VolunteerId,

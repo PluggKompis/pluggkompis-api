@@ -65,7 +65,7 @@ namespace Infrastructure.Repositories
                         .ThenInclude(vs => vs.Volunteer)
                 .Include(v => v.VolunteerApplications)
                     .ThenInclude(va => va.Volunteer)
-                        .ThenInclude(vol => vol.VolunteerSubjects)  
+                        .ThenInclude(vol => vol.VolunteerSubjects)
                             .ThenInclude(vs => vs.Subject)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
