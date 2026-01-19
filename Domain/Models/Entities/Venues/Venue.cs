@@ -23,5 +23,6 @@ namespace Domain.Models.Entities.Venues
         // Navigation
         public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
         public ICollection<VolunteerProfile> PreferredByVolunteers { get; set; } = new List<VolunteerProfile>();
+        public ICollection<VolunteerApplication> VolunteerApplications { get; set; } = new List<VolunteerApplication>();
     }
 }

@@ -1,6 +1,7 @@
 using Application.Venues.Dtos;
 using AutoMapper;
 using Domain.Models.Entities.Venues;
+using Domain.Models.Enums;
 
 namespace Application.Common.Mappings
 {
@@ -35,7 +36,19 @@ namespace Application.Common.Mappings
                             ? $"{src.Coordinator.FirstName} {src.Coordinator.LastName}"
                             : "Unknown Coordinator"))
                 .ForMember(dest => dest.TimeSlots,
-                    opt => opt.MapFrom(src => src.TimeSlots));
+                    opt => opt.MapFrom(src => src.TimeSlots))
+                .ForMember(dest => dest.Volunteers, 
+                    opt => opt.MapFrom(src => src.VolunteerApplications
+                        .Where(va => va.Status == VolunteerApplicationStatus.Approved)  
+                        .Select(va => new VolunteerSummaryDto
+                        {
+                            VolunteerId = va.VolunteerId,
+                            VolunteerName = $"{va.Volunteer.FirstName} {va.Volunteer.LastName}",
+                            // User → VolunteerSubjects (join table) → Subject
+                            Subjects = va.Volunteer.VolunteerSubjects
+                                .Select(vs => vs.Subject.Name)
+                                .ToList()
+                        })));
         }
     }
 }

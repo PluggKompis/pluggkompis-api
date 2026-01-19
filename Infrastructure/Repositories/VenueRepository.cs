@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Application.Venues.Dtos;
 using Domain.Models.Entities.Venues;
+using Domain.Models.Enums;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,8 +63,10 @@ namespace Infrastructure.Repositories
                 .Include(v => v.TimeSlots)
                     .ThenInclude(ts => ts.VolunteerShifts)
                         .ThenInclude(vs => vs.Volunteer)
-                .Include(v => v.PreferredByVolunteers)
-                    .ThenInclude(vp => vp.Volunteer)
+                .Include(v => v.VolunteerApplications)
+                    .ThenInclude(va => va.Volunteer)
+                        .ThenInclude(vol => vol.VolunteerSubjects)  
+                            .ThenInclude(vs => vs.Subject)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 

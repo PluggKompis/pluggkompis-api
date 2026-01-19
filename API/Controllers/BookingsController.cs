@@ -3,8 +3,6 @@ using Application.Bookings.Commands.CancelBooking;
 using Application.Bookings.Commands.CreateBooking;
 using Application.Bookings.Dtos;
 using Application.Bookings.Queries.GetMyBookings;
-using Application.Venues.Commands.DeleteVenue;
-using Domain.Models.Entities.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
