@@ -26,7 +26,7 @@ namespace Application.Common.Mappings
                             Name = tss.Subject.Name,
                             Icon = tss.Subject.Icon
                         })
-                        .GroupBy(s => s.Id) 
+                        .GroupBy(s => s.Id)
                         .Select(g => g.First())
                         .ToList()))
                 .ForMember(dest => dest.AvailableDays,
