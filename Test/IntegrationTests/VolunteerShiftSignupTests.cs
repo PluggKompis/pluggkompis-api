@@ -1,18 +1,14 @@
 using Application.Auth.Dtos;
+using Domain.Models.Common;
 using Domain.Models.Entities.Venues;
 using Domain.Models.Entities.Volunteers;
 using Domain.Models.Enums;
 using Infrastructure.Database;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+using Application.VolunteerShifts.Dtos;
 
 namespace Test.IntegrationTests
 {
@@ -21,55 +17,68 @@ namespace Test.IntegrationTests
     {
         private CustomWebApplicationFactory _factory = null!;
         private HttpClient _client = null!;
+        private string? _volunteerToken;
+        private Guid _volunteerId;
 
         [SetUp]
-        public void SetUp()
+        public async Task SetUp()
         {
             _factory = new CustomWebApplicationFactory();
             _client = _factory.CreateClient();
+
+            // Register volunteer and get token (same pattern as your TimeSlots tests)
+            (_volunteerToken, _volunteerId) = await RegisterVolunteerAndGetTokenAndIdAsync();
         }
 
         [TearDown]
         public void TearDown()
         {
-            _client.Dispose();
-            _factory.Dispose();
+            _client?.Dispose();
+            _factory?.Dispose();
         }
 
         [Test]
         public async Task Post_Volunteers_Shifts_Creates_Shift()
         {
             // Arrange
-            var (token, volunteerId) = await RegisterAndLoginVolunteerAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            SetAuthToken(_volunteerToken!);
 
-            var timeSlotId = await SeedVenueTimeslotAndApprovalAsync(volunteerId);
+            var timeSlotId = await SeedVenueTimeSlotAndApprovalAsync(_volunteerId);
 
-            // Act
-            var response = await _client.PostAsJsonAsync("/api/volunteers/shifts", new
+            var request = new
             {
                 timeSlotId,
                 notes = "I can help!"
-            });
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/volunteers/shifts", request);
+
+            // Debug
+            if (response.StatusCode != HttpStatusCode.Created)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Status: {response.StatusCode}");
+                Console.WriteLine($"Content: {content}");
+            }
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
 
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-
-            Assert.That(doc.RootElement.GetProperty("isSuccess").GetBoolean(), Is.True);
-            Assert.That(doc.RootElement.GetProperty("data").GetProperty("timeSlotId").GetGuid(), Is.EqualTo(timeSlotId));
+            var result = await response.Content.ReadFromJsonAsync<OperationResult<VolunteerShiftDto>>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.IsSuccess, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data!.TimeSlotId, Is.EqualTo(timeSlotId));
         }
 
         [Test]
         public async Task Post_Volunteers_Shifts_Cannot_SignUp_Twice_For_Same_Shift()
         {
             // Arrange
-            var (token, volunteerId) = await RegisterAndLoginVolunteerAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            SetAuthToken(_volunteerToken!);
 
-            var timeSlotId = await SeedVenueTimeslotAndApprovalAsync(volunteerId);
+            var timeSlotId = await SeedVenueTimeSlotAndApprovalAsync(_volunteerId);
 
             // Act 1 - first signup OK
             var first = await _client.PostAsJsonAsync("/api/volunteers/shifts", new { timeSlotId });
@@ -78,22 +87,30 @@ namespace Test.IntegrationTests
             // Act 2 - second signup should fail
             var second = await _client.PostAsJsonAsync("/api/volunteers/shifts", new { timeSlotId });
 
+            // Debug
+            if (second.StatusCode != HttpStatusCode.BadRequest)
+            {
+                var content = await second.Content.ReadAsStringAsync();
+                Console.WriteLine($"Status: {second.StatusCode}");
+                Console.WriteLine($"Content: {content}");
+            }
+
             // Assert
             Assert.That(second.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-            var body = await second.Content.ReadAsStringAsync();
-            Assert.That(body, Does.Contain("\"isSuccess\":false"));
-            Assert.That(body.ToLowerInvariant(), Does.Contain("already"));
+            var result = await second.Content.ReadFromJsonAsync<OperationResult<VolunteerShiftDto>>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.IsSuccess, Is.False);
+            Assert.That(result.Errors.Any(e => e.Contains("already", StringComparison.OrdinalIgnoreCase)), Is.True);
         }
 
-        // ----------------------------
-        // Helpers
-        // ----------------------------
-
-        private async Task<(string token, Guid userId)> RegisterAndLoginVolunteerAsync()
+        /// <summary>
+        /// Register a volunteer and return (token, volunteerId). Token is returned from /register.
+        /// volunteerId is loaded from DB using the unique email we registered with.
+        /// </summary>
+        private async Task<(string token, Guid volunteerId)> RegisterVolunteerAndGetTokenAndIdAsync()
         {
-            // Register
-            var email = $"vol.{Guid.NewGuid():N}@test.com";
+            var email = $"volunteer.{Guid.NewGuid()}@test.com";
 
             var registerDto = new RegisterUserDto
             {
@@ -104,40 +121,28 @@ namespace Test.IntegrationTests
                 Role = UserRole.Volunteer
             };
 
-            var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", registerDto);
-            Assert.That(registerResponse.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerDto);
 
-            // Login
-            var loginDto = new LoginUserDto
+            if (!response.IsSuccessStatusCode)
             {
-                Email = email,
-                Password = "Password123!"
-            };
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to register volunteer: {response.StatusCode} - {errorContent}");
+            }
 
-            var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
-            Assert.That(loginResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            var result = await response.Content.ReadFromJsonAsync<OperationResult<AuthResponseDto>>();
+            var token = result?.Data?.Token ?? throw new Exception("No token received from register");
 
-            var json = await loginResponse.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
+            // Fetch userId from DB by email (same in-memory DB instance via factory services)
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var data = doc.RootElement.GetProperty("data");
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            Assert.That(user, Is.Not.Null, "Could not find registered volunteer user in DB.");
 
-            var token =
-                TryGetString(data, "accessToken") ??
-                TryGetString(data, "token");
-
-            Assert.That(token, Is.Not.Null.And.Not.Empty, "Could not find access token in login response.");
-
-            var userIdString =
-                TryGetString(data, "userId") ??
-                TryGetString(data, "id");
-
-            Assert.That(userIdString, Is.Not.Null.And.Not.Empty, "Could not find userId in login response.");
-
-            return (token!, Guid.Parse(userIdString!));
+            return (token, user!.Id);
         }
 
-        private async Task<Guid> SeedVenueTimeslotAndApprovalAsync(Guid volunteerId)
+        private async Task<Guid> SeedVenueTimeSlotAndApprovalAsync(Guid volunteerId)
         {
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -146,8 +151,12 @@ namespace Test.IntegrationTests
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Venue",
-                Address = "Test Address",
-                City = "Gothenburg",
+                Address = "Testgatan 1",
+                City = "Göteborg",
+                PostalCode = "123 45",
+                Description = "Test venue for volunteer shifts",
+                ContactEmail = "venue@test.se",
+                ContactPhone = "070-123 45 67",
                 IsActive = true
             };
 
@@ -156,15 +165,16 @@ namespace Test.IntegrationTests
                 Id = Guid.NewGuid(),
                 VenueId = venue.Id,
                 DayOfWeek = WeekDay.Monday,
-                StartTime = new TimeSpan(16, 0, 0),
-                EndTime = new TimeSpan(18, 0, 0),
-                MaxStudents = 10,
+                StartTime = TimeSpan.FromHours(16),
+                EndTime = TimeSpan.FromHours(18),
+                MaxStudents = 20,
                 IsRecurring = true,
                 SpecificDate = null,
-                Status = TimeSlotStatus.Open // adjust if your enum differs
+                Status = TimeSlotStatus.Open
             };
 
-            var application = new VolunteerApplication
+            // Approval required by business rule
+            var approval = new VolunteerApplication
             {
                 Id = Guid.NewGuid(),
                 VolunteerId = volunteerId,
@@ -175,17 +185,17 @@ namespace Test.IntegrationTests
 
             db.Venues.Add(venue);
             db.TimeSlots.Add(timeSlot);
-            db.VolunteerApplications.Add(application);
+            db.VolunteerApplications.Add(approval);
 
             await db.SaveChangesAsync();
+
             return timeSlot.Id;
         }
 
-        private static string? TryGetString(JsonElement obj, string prop)
+        private void SetAuthToken(string token)
         {
-            return obj.TryGetProperty(prop, out var el) && el.ValueKind == JsonValueKind.String
-                ? el.GetString()
-                : null;
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
     }
 }
