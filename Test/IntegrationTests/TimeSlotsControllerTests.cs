@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Test.IntegrationTests.Extensions;
 
 namespace Test.IntegrationTests
 {
@@ -56,7 +57,7 @@ namespace Test.IntegrationTests
                 throw new Exception($"Failed to register coordinator: {response.StatusCode} - {errorContent}");
             }
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<AuthResponseDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<AuthResponseDto>>();
 
             return result?.Data?.Token ?? throw new Exception("No token received");
         }
@@ -80,7 +81,7 @@ namespace Test.IntegrationTests
             };
 
             var venueResponse = await _client.PostAsJsonAsync("/api/venues", venueRequest);
-            var venueResult = await venueResponse.Content.ReadFromJsonAsync<OperationResult<VenueDto>>();
+            var venueResult = await venueResponse.Content.ReadFromJsonWithEnumAsync<OperationResult<VenueDto>>();
             Assert.That(venueResult, Is.Not.Null);
             Assert.That(venueResult!.IsSuccess, Is.True);
             var venueId = venueResult.Data!.Id;
@@ -115,7 +116,7 @@ namespace Test.IntegrationTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created),
                 $"Expected Created but got {response.StatusCode}");
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<TimeSlotDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<TimeSlotDto>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
@@ -148,7 +149,7 @@ namespace Test.IntegrationTests
             };
 
             var venueResponse = await _client.PostAsJsonAsync("/api/venues", venueRequest);
-            var venueResult = await venueResponse.Content.ReadFromJsonAsync<OperationResult<VenueDto>>();
+            var venueResult = await venueResponse.Content.ReadFromJsonWithEnumAsync<OperationResult<VenueDto>>();
             Assert.That(venueResult, Is.Not.Null);
             var venueId = venueResult!.Data!.Id;
 
@@ -195,7 +196,7 @@ namespace Test.IntegrationTests
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<TimeSlotDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<TimeSlotDto>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.False);
             Assert.That(result.Errors.Any(e => e.Contains("overlap", StringComparison.OrdinalIgnoreCase)), Is.True);
@@ -220,7 +221,7 @@ namespace Test.IntegrationTests
             };
 
             var venueResponse = await _client.PostAsJsonAsync("/api/venues", venueRequest);
-            var venueResult = await venueResponse.Content.ReadFromJsonAsync<OperationResult<VenueDto>>();
+            var venueResult = await venueResponse.Content.ReadFromJsonWithEnumAsync<OperationResult<VenueDto>>();
             var venueId = venueResult!.Data!.Id;
 
             var subjectId = await SeedTestSubjectAsync();
@@ -265,7 +266,7 @@ namespace Test.IntegrationTests
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<List<TimeSlotDto>>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<List<TimeSlotDto>>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);

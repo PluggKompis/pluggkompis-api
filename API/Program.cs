@@ -4,6 +4,8 @@ using Application;
 using Infrastructure;
 using Infrastructure.Database;
 using Infrastructure.Database.Seeding;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace API
 {
@@ -20,7 +22,13 @@ namespace API
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddSwaggerWithJwtAuth();
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // Serialize enums as strings in API responses (e.g., "Status": "Active" instead of "Status": 1)
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                });
             builder.Services.AddCustomValidationResponse();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
