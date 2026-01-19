@@ -24,30 +24,12 @@ namespace Infrastructure.Repositories
                 .Include(v => v.Coordinator)
                 .AsQueryable();
 
-            // Apply active/inactive filter (default: only show active venues)
-            if (filters.IsActive.HasValue)
-                query = query.Where(v => v.IsActive == filters.IsActive.Value);
-
-            if (!string.IsNullOrEmpty(filters.City))
-                query = query.Where(v => v.City == filters.City);
-
-            // Subject filter requires checking all timeslots and their subjects
-            if (filters.SubjectId.HasValue)
-            {
-                query = query.Where(v => v.TimeSlots
-                    .Any(ts => ts.Subjects
-                        .Any(tss => tss.SubjectId == filters.SubjectId.Value)));
-            }
-
-            // DayOfWeek filter checks if venue has any timeslot on that day
-            if (filters.DayOfWeek.HasValue)
-            {
-                query = query.Where(v => v.TimeSlots
-                    .Any(ts => ts.DayOfWeek == filters.DayOfWeek.Value));
-            }
+            // Apply filters
+            query = ApplyFilters(query, filters);
 
             // Pagination
             return await query
+                .OrderBy(v => v.Name)
                 .Skip((filters.PageNumber - 1) * filters.PageSize)
                 .Take(filters.PageSize)
                 .ToListAsync();
@@ -57,24 +39,8 @@ namespace Infrastructure.Repositories
         {
             var query = _context.Venues.AsQueryable();
 
-            if (filters.IsActive.HasValue)
-                query = query.Where(v => v.IsActive == filters.IsActive.Value);
-
-            if (!string.IsNullOrEmpty(filters.City))
-                query = query.Where(v => v.City == filters.City);
-
-            if (filters.SubjectId.HasValue)
-            {
-                query = query.Where(v => v.TimeSlots
-                    .Any(ts => ts.Subjects
-                        .Any(tss => tss.SubjectId == filters.SubjectId.Value)));
-            }
-
-            if (filters.DayOfWeek.HasValue)
-            {
-                query = query.Where(v => v.TimeSlots
-                    .Any(ts => ts.DayOfWeek == filters.DayOfWeek.Value));
-            }
+            // Apply filters
+            query = ApplyFilters(query, filters);
 
             return await query.CountAsync();
         }
@@ -129,6 +95,37 @@ namespace Infrastructure.Repositories
                 _context.Venues.Remove(venue);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        /// <summary>
+        /// Apply filters to venue query (DRY - reused in GetAllAsync and GetCountAsync)
+        /// </summary>
+        private IQueryable<Venue> ApplyFilters(IQueryable<Venue> query, VenueFilterParams filters)
+        {
+            // Filter by active/inactive status (default: only show active venues)
+            if (filters.IsActive.HasValue)
+                query = query.Where(v => v.IsActive == filters.IsActive.Value);
+
+            // Filter by city (exact match)
+            if (!string.IsNullOrEmpty(filters.City))
+                query = query.Where(v => v.City == filters.City);
+
+            // Filter by multiple subjects (venue must have at least one matching subject)
+            if (filters.SubjectIds != null && filters.SubjectIds.Any())
+            {
+                query = query.Where(v => v.TimeSlots
+                    .Any(ts => ts.Subjects
+                        .Any(tss => filters.SubjectIds.Contains(tss.SubjectId))));
+            }
+
+            // Filter by multiple days (venue must have at least one matching day)
+            if (filters.DaysOfWeek != null && filters.DaysOfWeek.Any())
+            {
+                query = query.Where(v => v.TimeSlots
+                    .Any(ts => filters.DaysOfWeek.Contains(ts.DayOfWeek)));
+            }
+
+            return query;
         }
     }
 }

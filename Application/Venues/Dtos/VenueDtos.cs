@@ -113,14 +113,14 @@ namespace Application.Venues.Dtos
         public string? City { get; set; }
 
         /// <summary>
-        /// Filter venues that offer this subject
+        /// Filter venues that offer at least one of these subjects
         /// </summary>
-        public Guid? SubjectId { get; set; }
+        public List<Guid>? SubjectIds { get; set; }
 
         /// <summary>
-        /// Filter venues that have timeslots on this day
+        /// Filter venues that have timeslots on at least one of these days
         /// </summary>
-        public WeekDay? DayOfWeek { get; set; }
+        public List<WeekDay>? DaysOfWeek { get; set; }
 
         /// <summary>
         /// Filter by active/inactive status. Defaults to true (only active venues)
