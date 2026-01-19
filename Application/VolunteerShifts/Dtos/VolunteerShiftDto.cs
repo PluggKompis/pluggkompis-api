@@ -25,6 +25,8 @@ namespace Application.VolunteerShifts.Dtos
         // Helpful for “upcoming” UI sorting/filtering
         public DateTime? NextOccurrenceStartUtc { get; set; }
         public DateTime? NextOccurrenceEndUtc { get; set; }
+
+        public double? DurationHours { get; set; }
     }
 
     public class CreateShiftSignupRequest
