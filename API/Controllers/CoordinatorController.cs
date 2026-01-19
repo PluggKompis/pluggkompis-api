@@ -54,7 +54,7 @@ namespace API.Controllers
             return this.FromOperationResult(result);
         }
 
-        [HttpPut("{id:guid}/attendance")]
+        [HttpPut("shifts/{id:guid}/attendance")]
         [Authorize(Roles = nameof(UserRole.Coordinator))]
         public async Task<IActionResult> MarkAttendance([FromRoute] Guid id, [FromBody] MarkAttendanceRequest request)
         {
