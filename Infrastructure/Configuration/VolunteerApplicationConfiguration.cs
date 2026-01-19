@@ -32,7 +32,7 @@ namespace Infrastructure.Configuration
 
             // Venue (1:M)
             entity.HasOne(x => x.Venue)
-                .WithMany() // no navigation required on Venue
+                .WithMany(v => v.VolunteerApplications)
                 .HasForeignKey(x => x.VenueId)
                 .OnDelete(DeleteBehavior.Restrict);
 

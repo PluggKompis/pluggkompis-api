@@ -563,7 +563,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.Models.Entities.Venues.Venue", "Venue")
-                        .WithMany()
+                        .WithMany("VolunteerApplications")
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -669,6 +669,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("PreferredByVolunteers");
 
                     b.Navigation("TimeSlots");
+
+                    b.Navigation("VolunteerApplications");
                 });
 #pragma warning restore 612, 618
         }
