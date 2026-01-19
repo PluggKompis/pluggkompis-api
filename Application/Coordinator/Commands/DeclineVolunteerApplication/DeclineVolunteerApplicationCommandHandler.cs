@@ -1,4 +1,6 @@
 using Application.Common.Interfaces;
+using Application.Volunteers.Dtos;
+using AutoMapper;
 using Domain.Models.Common;
 using Domain.Models.Enums;
 using MediatR;
@@ -6,28 +8,34 @@ using MediatR;
 namespace Application.Coordinator.Commands.DeclineVolunteerApplication
 {
     public class DeclineVolunteerApplicationCommandHandler
-        : IRequestHandler<DeclineVolunteerApplicationCommand, OperationResult>
+        : IRequestHandler<DeclineVolunteerApplicationCommand, OperationResult<VolunteerApplicationDto>>
     {
         private readonly IVolunteerApplicationRepository _applications;
+        private readonly IMapper _mapper;
 
-        public DeclineVolunteerApplicationCommandHandler(IVolunteerApplicationRepository applications)
+        public DeclineVolunteerApplicationCommandHandler(
+            IVolunteerApplicationRepository applications,
+            IMapper mapper)
         {
             _applications = applications;
+            _mapper = mapper;
         }
 
-        public async Task<OperationResult> Handle(
+        public async Task<OperationResult<VolunteerApplicationDto>> Handle(
             DeclineVolunteerApplicationCommand request,
             CancellationToken cancellationToken)
         {
             var application = await _applications.GetByIdAsync(request.ApplicationId);
             if (application is null)
-                return OperationResult.Failure("Application not found.");
+                return OperationResult<VolunteerApplicationDto>.Failure("Application not found.");
 
             if (application.Venue.CoordinatorId != request.CoordinatorId)
-                return OperationResult.Failure("Forbidden: you can only manage applications for your own venues.");
+                return OperationResult<VolunteerApplicationDto>.Failure(
+                    "Forbidden: you can only manage applications for your own venues.");
 
             if (application.Status != VolunteerApplicationStatus.Pending)
-                return OperationResult.Failure("Only pending applications can be declined.");
+                return OperationResult<VolunteerApplicationDto>.Failure(
+                    "Only pending applications can be declined.");
 
             application.Status = VolunteerApplicationStatus.Declined;
             application.ReviewedByCoordinatorId = request.CoordinatorId;
@@ -36,7 +44,8 @@ namespace Application.Coordinator.Commands.DeclineVolunteerApplication
 
             await _applications.UpdateAsync(application);
 
-            return OperationResult.Success();
+            var dto = _mapper.Map<VolunteerApplicationDto>(application);
+            return OperationResult<VolunteerApplicationDto>.Success(dto);
         }
     }
 }
