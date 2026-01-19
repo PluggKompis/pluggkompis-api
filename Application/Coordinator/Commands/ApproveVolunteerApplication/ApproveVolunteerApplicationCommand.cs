@@ -4,6 +4,9 @@ using MediatR;
 
 namespace Application.Coordinator.Commands.ApproveVolunteerApplication
 {
-    public record ApproveVolunteerApplicationCommand(Guid CoordinatorId, Guid ApplicationId, ApproveVolunteerRequest Dto)
-        : IRequest<OperationResult>;
+    public record ApproveVolunteerApplicationCommand(
+        Guid CoordinatorId,
+        Guid ApplicationId,
+        ApproveVolunteerRequest Dto)
+        : IRequest<OperationResult<VolunteerApplicationDto>>;
 }

@@ -4,6 +4,8 @@ using Application.TimeSlots.Commands.DeleteTimeSlot;
 using Application.TimeSlots.Commands.UpdateTimeSlot;
 using Application.TimeSlots.Dtos;
 using Application.TimeSlots.Queries.GetTimeslotById;
+using Application.VolunteerShifts.Queries.GetTimeSlotVolunteers;
+using Domain.Models.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -113,6 +115,17 @@ namespace API.Controllers
             var result = await _mediator.Send(command);
 
             return this.FromOperationResultNoContent(result);
+        }
+
+        /// <summary>
+        /// Get Volunteers for a specific TimeSlot (Coordinator only)
+        /// </summary>
+        [HttpGet("{id:guid}/volunteers")]
+        [Authorize(Roles = nameof(UserRole.Coordinator))]
+        public async Task<IActionResult> GetVolunteersForTimeSlot([FromRoute] Guid id)
+        {
+            var result = await _mediator.Send(new GetTimeSlotVolunteersQuery(id));
+            return this.FromOperationResult(result);
         }
     }
 }

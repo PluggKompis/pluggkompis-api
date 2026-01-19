@@ -14,15 +14,22 @@ namespace Infrastructure.Configuration
             entity.Property(x => x.IsAttended).IsRequired();
             entity.Property(x => x.Notes).HasMaxLength(2000).IsRequired(false);
 
-            entity.HasIndex(x => x.TimeSlotId);
-            entity.HasIndex(x => x.VolunteerId);
-
             // Indexes
             // Prevent same volunteer signing up twice for same slot
             entity.HasIndex(x => new { x.TimeSlotId, x.VolunteerId }).IsUnique();
             entity.HasIndex(x => x.TimeSlotId);
             entity.HasIndex(x => x.VolunteerId);
             entity.HasIndex(x => x.Status);
+
+            entity.HasOne(x => x.TimeSlot)
+                .WithMany(ts => ts.VolunteerShifts)
+                .HasForeignKey(x => x.TimeSlotId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Volunteer)
+                .WithMany(u => u.VolunteerShifts)
+                .HasForeignKey(x => x.VolunteerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
