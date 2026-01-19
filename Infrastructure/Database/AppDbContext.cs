@@ -26,6 +26,7 @@ namespace Infrastructure.Database
         public DbSet<Booking> Bookings => Set<Booking>();
         public DbSet<VolunteerShift> VolunteerShifts => Set<VolunteerShift>();
         public DbSet<VolunteerSubject> VolunteerSubjects => Set<VolunteerSubject>();
+        public DbSet<VolunteerApplication> VolunteerApplications => Set<VolunteerApplication>();
 
         public DbSet<LogEntry> Logs => Set<LogEntry>();
 

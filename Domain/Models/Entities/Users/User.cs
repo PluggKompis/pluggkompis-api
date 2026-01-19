@@ -34,5 +34,9 @@ namespace Domain.Models.Entities.Users
 
         public ICollection<VolunteerShift> VolunteerShifts { get; set; } = new List<VolunteerShift>();
         public ICollection<VolunteerSubject> VolunteerSubjects { get; set; } = new List<VolunteerSubject>();
+
+        public ICollection<VolunteerApplication> VolunteerApplications { get; set; } = new List<VolunteerApplication>();
+        public ICollection<VolunteerApplication> ReviewedVolunteerApplications { get; set; } = new List<VolunteerApplication>();
+
     }
 }

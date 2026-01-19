@@ -32,9 +32,9 @@ namespace Domain.Models.Enums
 
     public enum VolunteerApplicationStatus
     {
-        Pending = 1,
-        Approved = 2,
-        Declined = 3
+        Pending,
+        Approved,
+        Declined
     }
 
     public enum ConfidenceLevel
