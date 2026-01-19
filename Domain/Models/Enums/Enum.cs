@@ -27,7 +27,7 @@ namespace Domain.Models.Enums
         Pending,
         Confirmed,
         Cancelled,
-        Competed
+        Completed
     }
 
     public enum VolunteerApplicationStatus

@@ -34,8 +34,10 @@ namespace API.Controllers
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveVolunteerRequest request)
         {
             var coordinatorId = User.GetUserId();
-            var result = await _mediator.Send(new ApproveVolunteerApplicationCommand(coordinatorId, id, request));
-            return this.FromOperationResultNoContent(result);
+            var result = await _mediator.Send(
+                new ApproveVolunteerApplicationCommand(coordinatorId, id, request));
+
+            return this.FromOperationResult(result);
         }
 
         [Authorize(Roles = "Coordinator")]
@@ -43,8 +45,10 @@ namespace API.Controllers
         public async Task<IActionResult> Decline(Guid id, [FromBody] ApproveVolunteerRequest request)
         {
             var coordinatorId = User.GetUserId();
-            var result = await _mediator.Send(new DeclineVolunteerApplicationCommand(coordinatorId, id, request));
-            return this.FromOperationResultNoContent(result);
+            var result = await _mediator.Send(
+                new DeclineVolunteerApplicationCommand(coordinatorId, id, request));
+
+            return this.FromOperationResult(result);
         }
     }
 }
