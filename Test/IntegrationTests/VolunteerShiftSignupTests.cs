@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Application.VolunteerShifts.Dtos;
+using Test.IntegrationTests.Extensions;
 
 namespace Test.IntegrationTests
 {
@@ -65,7 +66,7 @@ namespace Test.IntegrationTests
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<VolunteerShiftDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<VolunteerShiftDto>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.True);
             Assert.That(result.Data, Is.Not.Null);
@@ -98,7 +99,7 @@ namespace Test.IntegrationTests
             // Assert
             Assert.That(second.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-            var result = await second.Content.ReadFromJsonAsync<OperationResult<VolunteerShiftDto>>();
+            var result = await second.Content.ReadFromJsonWithEnumAsync<OperationResult<VolunteerShiftDto>>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result!.IsSuccess, Is.False);
             Assert.That(result.Errors.Any(e => e.Contains("already", StringComparison.OrdinalIgnoreCase)), Is.True);
@@ -129,7 +130,7 @@ namespace Test.IntegrationTests
                 throw new Exception($"Failed to register volunteer: {response.StatusCode} - {errorContent}");
             }
 
-            var result = await response.Content.ReadFromJsonAsync<OperationResult<AuthResponseDto>>();
+            var result = await response.Content.ReadFromJsonWithEnumAsync<OperationResult<AuthResponseDto>>();
             var token = result?.Data?.Token ?? throw new Exception("No token received from register");
 
             // Fetch userId from DB by email (same in-memory DB instance via factory services)
