@@ -1,3 +1,4 @@
+using Application.Subjects.Dtos;
 using Application.TimeSlots.Dtos;
 using Domain.Models.Enums;
 
@@ -28,7 +29,7 @@ namespace Application.Venues.Dtos
         /// <summary>
         /// List of subjects available at this venue (distinct from all timeslots)
         /// </summary>
-        public List<string> AvailableSubjects { get; set; } = new();
+        public List<SubjectDto> AvailableSubjects { get; set; } = new();
 
         /// <summary>
         /// Days of the week when this venue has timeslots
@@ -70,7 +71,7 @@ namespace Application.Venues.Dtos
     {
         public Guid VolunteerId { get; set; }
         public required string VolunteerName { get; set; }
-        public List<string> Subjects { get; set; } = new();
+        public List<SubjectDto> Subjects { get; set; } = new();
     }
 
     /// <summary>
