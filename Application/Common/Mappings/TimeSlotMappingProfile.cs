@@ -1,3 +1,4 @@
+using Application.Subjects.Dtos;
 using Application.TimeSlots.Dtos;
 using AutoMapper;
 using Domain.Models.Entities.Venues;
@@ -14,7 +15,12 @@ namespace Application.Common.Mappings
                     opt => opt.MapFrom(src => src.Venue != null ? src.Venue.Name : "Unknown"))
                 .ForMember(dest => dest.Subjects,
                     opt => opt.MapFrom(src => src.Subjects
-                        .Select(ts => ts.Subject.Name)
+                        .Select(ts => new SubjectDto
+                        {
+                            Id = ts.Subject.Id,
+                            Name = ts.Subject.Name,
+                            Icon = ts.Subject.Icon
+                        })
                         .ToList()))
                 .ForMember(dest => dest.CurrentBookings,
                     opt => opt.MapFrom(src => src.Bookings

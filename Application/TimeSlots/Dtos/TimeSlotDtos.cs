@@ -1,3 +1,4 @@
+using Application.Subjects.Dtos;
 using Domain.Models.Enums;
 
 namespace Application.TimeSlots.Dtos
@@ -18,7 +19,7 @@ namespace Application.TimeSlots.Dtos
         public bool IsRecurring { get; set; }
         public DateOnly? SpecificDate { get; set; }  // For one-time events
         public TimeSlotStatus Status { get; set; }
-        public List<string> Subjects { get; set; } = new();  // Subject names
+        public List<SubjectDto> Subjects { get; set; } = new();  // Subject names
         public int CurrentBookings { get; set; }  // Number of confirmed bookings
     }
 
