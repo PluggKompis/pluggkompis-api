@@ -61,5 +61,14 @@ namespace Infrastructure.Repositories
                 .Where(x => x.TimeSlotId == timeSlotId)
                 .ToListAsync();
         }
+
+        public async Task<VolunteerShift?> GetByIdWithTimeSlotVenueAsync(Guid id)
+        {
+            return await _db.VolunteerShifts
+                .Include(x => x.TimeSlot)
+                    .ThenInclude(ts => ts.Venue)
+                .Include(x => x.Volunteer)
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
     }
 }
