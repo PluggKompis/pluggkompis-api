@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.VolunteerShifts.Dtos;
+using Application.VolunteerShifts.Helpers;
 using AutoMapper;
 using Domain.Models.Common;
 using Domain.Models.Entities.Venues;
@@ -67,6 +68,11 @@ namespace Application.VolunteerShifts.Commands.SignupForShift
                 return OperationResult<VolunteerShiftDto>.Success(existingDto);
             }
 
+            var (startUtc, endUtc) = TimeSlotOccurrenceHelper.GetNextOccurrenceUtc(timeSlot, DateTime.UtcNow);
+
+            if (startUtc is null || endUtc is null)
+                return OperationResult<VolunteerShiftDto>.Failure("This timeslot has no upcoming occurrence.");
+
             var shift = new VolunteerShift
             {
                 Id = Guid.NewGuid(),
@@ -74,7 +80,9 @@ namespace Application.VolunteerShifts.Commands.SignupForShift
                 TimeSlotId = timeSlot.Id,
                 Status = VolunteerShiftStatus.Confirmed,
                 Notes = request.Dto.Notes,
-                IsAttended = false
+                IsAttended = false,
+                OccurrenceStartUtc = startUtc.Value,
+                OccurrenceEndUtc = endUtc.Value
             };
 
             await _genericShifts.AddAsync(shift);

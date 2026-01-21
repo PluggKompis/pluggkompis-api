@@ -59,5 +59,14 @@ namespace Infrastructure.Repositories
             _db.VolunteerApplications.Update(application);
             await _db.SaveChangesAsync();
         }
+
+        public Task<List<VolunteerApplication>> GetByVolunteerIdAsync(Guid volunteerId)
+            => _db.VolunteerApplications
+                .AsNoTracking()
+                .Include(x => x.Venue)
+                .Include(x => x.Volunteer)
+                .Where(x => x.VolunteerId == volunteerId)
+                .OrderByDescending(x => x.AppliedAt)
+                .ToListAsync();
     }
 }

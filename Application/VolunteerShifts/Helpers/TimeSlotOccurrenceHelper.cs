@@ -10,16 +10,24 @@ namespace Application.VolunteerShifts.Helpers
         // If you later introduce true Stockholm-local scheduling, swap this to use a timezone provider.
         public static (DateTime? startUtc, DateTime? endUtc) GetNextOccurrenceUtc(TimeSlot slot, DateTime utcNow)
         {
+            if (utcNow.Kind != DateTimeKind.Utc)
+                utcNow = DateTime.SpecifyKind(utcNow, DateTimeKind.Utc);
+
             if (slot.SpecificDate is not null)
             {
-                var start = slot.SpecificDate.Value.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime));
-                var end = slot.SpecificDate.Value.ToDateTime(TimeOnly.FromTimeSpan(slot.EndTime));
+                var date = slot.SpecificDate.Value;
 
-                // Treat as UTC baseline for now
-                start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
-                end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+                var startLocal = date.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime));
+                var endLocal = date.ToDateTime(TimeOnly.FromTimeSpan(slot.EndTime));
 
-                return (start, end);
+                // Handle overnight slot (end next day)
+                if (slot.EndTime <= slot.StartTime)
+                    endLocal = endLocal.AddDays(1);
+
+                var startUtc = DateTime.SpecifyKind(startLocal, DateTimeKind.Utc);
+                var endUtc = DateTime.SpecifyKind(endLocal, DateTimeKind.Utc);
+
+                return (startUtc, endUtc);
             }
 
             if (!slot.IsRecurring)
@@ -29,31 +37,34 @@ namespace Application.VolunteerShifts.Helpers
             var today = DateOnly.FromDateTime(utcNow);
             var target = ToSystemDayOfWeek(slot.DayOfWeek);
 
-            // Find next occurrence date
             var daysAhead = ((int)target - (int)utcNow.DayOfWeek + 7) % 7;
-            var date = today.AddDays(daysAhead);
+            var dateCandidate = today.AddDays(daysAhead);
 
-            var startCandidate = date.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime));
+            var startCandidate = dateCandidate.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime));
             startCandidate = DateTime.SpecifyKind(startCandidate, DateTimeKind.Utc);
 
             // If it’s “today” but already started, move a week ahead
             if (daysAhead == 0 && startCandidate <= utcNow)
             {
-                date = date.AddDays(7);
+                dateCandidate = dateCandidate.AddDays(7);
                 startCandidate = DateTime.SpecifyKind(
-                    date.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime)),
+                    dateCandidate.ToDateTime(TimeOnly.FromTimeSpan(slot.StartTime)),
                     DateTimeKind.Utc);
             }
 
-            var endCandidate = date.ToDateTime(
-                TimeOnly.FromTimeSpan(slot.EndTime));
+            var endCandidate = dateCandidate.ToDateTime(TimeOnly.FromTimeSpan(slot.EndTime));
+
+            // Handle overnight slot (end next day)
+            if (slot.EndTime <= slot.StartTime)
+                endCandidate = endCandidate.AddDays(1);
+
+            endCandidate = DateTime.SpecifyKind(endCandidate, DateTimeKind.Utc);
 
             return (startCandidate, endCandidate);
         }
 
         private static DayOfWeek ToSystemDayOfWeek(WeekDay day)
         {
-            // Adjust to match your WeekDay enum naming
             return day switch
             {
                 WeekDay.Monday => DayOfWeek.Monday,

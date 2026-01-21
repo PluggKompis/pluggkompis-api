@@ -17,5 +17,7 @@ namespace Domain.Models.Entities.Volunteers
         public VolunteerShiftStatus Status { get; set; }
         public bool IsAttended { get; set; }
         public string? Notes { get; set; }
+        public DateTime OccurrenceStartUtc { get; set; }
+        public DateTime OccurrenceEndUtc { get; set; }
     }
 }

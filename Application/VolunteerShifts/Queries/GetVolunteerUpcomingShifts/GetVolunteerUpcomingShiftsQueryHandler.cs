@@ -32,9 +32,8 @@ namespace Application.VolunteerShifts.Queries.GetVolunteerUpcomingShifts
                 {
                     var dto = _mapper.Map<VolunteerShiftDto>(s);
 
-                    var (startUtc, endUtc) = TimeSlotOccurrenceHelper.GetNextOccurrenceUtc(s.TimeSlot, now);
-                    dto.NextOccurrenceStartUtc = startUtc;
-                    dto.NextOccurrenceEndUtc = endUtc;
+                    dto.NextOccurrenceStartUtc = s.OccurrenceStartUtc;
+                    dto.NextOccurrenceEndUtc = s.OccurrenceEndUtc;
 
                     return dto;
                 })

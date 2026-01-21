@@ -1,3 +1,4 @@
+using Application.Common.Dtos;
 using Domain.Models.Common;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,6 +54,31 @@ namespace API.Extensions
             return hasNotFound
                 ? controller.NotFound(result)
                 : controller.BadRequest(result);
+        }
+
+        /// <summary>
+        /// Handles OperationResult<FileResponseDto> for file download operations
+        /// </summary>
+        public static IActionResult FromOperationResultFile(
+            this ControllerBase controller,
+            OperationResult<FileResponseDto> result)
+        {
+            if (result.IsSuccess && result.Data is not null)
+            {
+                return controller.File(result.Data.Content, result.Data.ContentType, result.Data.FileName);
+            }
+
+            if (result.Errors.Any(e => e.Contains("forbidden", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.StatusCode(StatusCodes.Status403Forbidden, result);
+            }
+
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.NotFound(result);
+            }
+
+            return controller.BadRequest(result);
         }
     }
 }
