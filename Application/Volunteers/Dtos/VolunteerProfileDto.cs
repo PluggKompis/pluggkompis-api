@@ -6,6 +6,7 @@ namespace Application.Volunteers.Dtos
     public class VolunteerProfileDto
     {
         public Guid VolunteerId { get; set; }
+        public string VolunteerName { get; set; } = string.Empty;
         public string Bio { get; set; } = string.Empty;
         public string Experience { get; set; } = string.Empty;
         public int? MaxHoursPerWeek { get; set; }

@@ -15,7 +15,9 @@ namespace Infrastructure.Repositories
         }
 
         public Task<VolunteerProfile?> GetByVolunteerIdAsync(Guid volunteerId)
-            => _db.VolunteerProfiles.FirstOrDefaultAsync(x => x.VolunteerId == volunteerId);
+            => _db.VolunteerProfiles
+                .Include(x => x.Volunteer)
+                .FirstOrDefaultAsync(x => x.VolunteerId == volunteerId);
 
         public async Task UpsertAsync(VolunteerProfile profile)
         {
