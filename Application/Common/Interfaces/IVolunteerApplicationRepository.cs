@@ -16,5 +16,7 @@ namespace Application.Common.Interfaces
         Task<List<Guid>> GetApprovedVolunteerIdsForVenueAsync(Guid venueId);
 
         Task UpdateAsync(VolunteerApplication application);
+        Task<List<VolunteerApplication>> GetByVolunteerIdAsync(Guid volunteerId);
+
     }
 }

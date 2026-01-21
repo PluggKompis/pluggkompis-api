@@ -20,6 +20,8 @@ namespace Infrastructure.Configuration
             entity.HasIndex(x => x.TimeSlotId);
             entity.HasIndex(x => x.VolunteerId);
             entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => new { x.VolunteerId, x.OccurrenceStartUtc });
+
 
             entity.HasOne(x => x.TimeSlot)
                 .WithMany(ts => ts.VolunteerShifts)
