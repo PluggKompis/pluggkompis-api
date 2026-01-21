@@ -75,5 +75,45 @@ namespace Infrastructure.Repositories
                     x.OccurrenceStartUtc < endExclusiveUtc)
                 .OrderBy(x => x.OccurrenceStartUtc)
                 .ToListAsync();
+
+        public async Task<(List<VolunteerShift> Items, int TotalCount)> GetForCoordinatorAsync(
+            Guid coordinatorId,
+            DateTime? startUtc,
+            DateTime? endUtcExclusive,
+            bool? isAttended,
+            Guid? venueId,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            var query = _db.VolunteerShifts
+                .AsNoTracking()
+                .Include(x => x.TimeSlot)
+                    .ThenInclude(ts => ts.Venue)
+                .Include(x => x.Volunteer)
+                .Where(x => x.TimeSlot.Venue.CoordinatorId == coordinatorId);
+
+            if (venueId.HasValue)
+                query = query.Where(x => x.TimeSlot.VenueId == venueId.Value);
+
+            if (isAttended.HasValue)
+                query = query.Where(x => x.IsAttended == isAttended.Value);
+
+            if (startUtc.HasValue)
+                query = query.Where(x => x.OccurrenceStartUtc >= startUtc.Value);
+
+            if (endUtcExclusive.HasValue)
+                query = query.Where(x => x.OccurrenceStartUtc < endUtcExclusive.Value);
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderBy(x => x.OccurrenceStartUtc)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
     }
 }
