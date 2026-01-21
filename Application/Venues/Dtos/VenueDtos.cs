@@ -1,5 +1,6 @@
 using Application.Subjects.Dtos;
 using Application.TimeSlots.Dtos;
+using Application.Volunteers.Dtos;
 using Domain.Models.Enums;
 
 namespace Application.Venues.Dtos
@@ -63,15 +64,8 @@ namespace Application.Venues.Dtos
         /// <summary>
         /// Approved volunteers working at this venue
         /// </summary>
-        public List<VolunteerSummaryDto> Volunteers { get; set; } = new();
-    }
+        public List<VolunteerProfileDto> Volunteers { get; set; } = new();
 
-    // Remove the placeholder below when Voluteer features are implemented
-    public class VolunteerSummaryDto
-    {
-        public Guid VolunteerId { get; set; }
-        public required string VolunteerName { get; set; }
-        public List<SubjectDto> Subjects { get; set; } = new();
     }
 
     /// <summary>

@@ -11,7 +11,9 @@ namespace Application.Volunteers.Mapping
         public VolunteerMappingProfile()
         {
             // Volunteer profile (subjects handled separately)
-            CreateMap<VolunteerProfile, VolunteerProfileDto>();
+            CreateMap<VolunteerProfile, VolunteerProfileDto>()
+                .ForMember(d => d.VolunteerName,
+                opt => opt.MapFrom(src => $"{src.Volunteer.FirstName} {src.Volunteer.LastName}"));
 
             // Subject catalog mapping
             CreateMap<Domain.Models.Entities.Subjects.Subject, SubjectDto>();
