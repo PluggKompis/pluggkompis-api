@@ -1,6 +1,7 @@
 using API.Extensions;
 using Application.Coordinator.Commands.ApproveVolunteerApplication;
 using Application.Coordinator.Commands.DeclineVolunteerApplication;
+using Application.Coordinator.Queries.GetCoordinatorShifts;
 using Application.Coordinator.Queries.GetPendingApplications;
 using Application.Volunteers.Commands.MarkShiftAttendance;
 using Application.Volunteers.Dtos;
@@ -22,7 +23,9 @@ namespace API.Controllers
         {
             _mediator = mediator;
         }
-
+        /// <summary>
+        /// Get all pending volunteer applications for the coordinator
+        /// </summary>
         [Authorize(Roles = "Coordinator")]
         [HttpGet("applications")]
         public async Task<IActionResult> GetPendingApplications()
@@ -32,6 +35,9 @@ namespace API.Controllers
             return this.FromOperationResult(result);
         }
 
+        /// <summary>
+        /// Approve a volunteer application
+        /// </summary>
         [Authorize(Roles = "Coordinator")]
         [HttpPut("applications/{id:guid}/approve")]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveVolunteerRequest request)
@@ -43,6 +49,9 @@ namespace API.Controllers
             return this.FromOperationResult(result);
         }
 
+        /// <summary>
+        /// Decline a volunteer application
+        /// </summary>
         [Authorize(Roles = "Coordinator")]
         [HttpPut("applications/{id:guid}/decline")]
         public async Task<IActionResult> Decline(Guid id, [FromBody] ApproveVolunteerRequest request)
@@ -54,6 +63,9 @@ namespace API.Controllers
             return this.FromOperationResult(result);
         }
 
+        /// <summary>
+        /// Mark attendance for a volunteer in a shift
+        /// </summary>
         [HttpPut("shifts/{id:guid}/attendance")]
         [Authorize(Roles = nameof(UserRole.Coordinator))]
         public async Task<IActionResult> MarkAttendance([FromRoute] Guid id, [FromBody] MarkAttendanceRequest request)
@@ -61,6 +73,34 @@ namespace API.Controllers
             var coordinatorId = User.GetUserId();
 
             var result = await _mediator.Send(new MarkShiftAttendanceCommand(coordinatorId, id, request));
+            return this.FromOperationResult(result);
+        }
+
+        /// <summary>
+        /// Get coordinator shifts with optional filters and pagination
+        /// </summary>
+        [HttpGet("shifts")]
+        public async Task<IActionResult> GetShifts(
+            [FromQuery] DateTime? startUtc,
+            [FromQuery] DateTime? endUtcExclusive,
+            [FromQuery] bool? isAttended,
+            [FromQuery] Guid? venueId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 50)
+        {
+            var coordinatorId = User.GetUserId();
+
+            var query = new GetCoordinatorShiftsQuery(coordinatorId)
+            {
+                StartUtc = startUtc,
+                EndUtcExclusive = endUtcExclusive,
+                IsAttended = isAttended,
+                VenueId = venueId,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            var result = await _mediator.Send(query);
             return this.FromOperationResult(result);
         }
     }

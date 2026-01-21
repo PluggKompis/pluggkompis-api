@@ -13,5 +13,14 @@ namespace Application.Common.Interfaces
             Guid volunteerId,
             DateTime startUtc,
             DateTime endExclusiveUtc);
+        Task<(List<VolunteerShift> Items, int TotalCount)> GetForCoordinatorAsync(
+            Guid coordinatorId,
+            DateTime? startUtc,
+            DateTime? endUtcExclusive,
+            bool? isAttended,
+            Guid? venueId,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken);
     }
 }
