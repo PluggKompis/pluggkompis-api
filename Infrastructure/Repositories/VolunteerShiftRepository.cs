@@ -41,6 +41,18 @@ namespace Infrastructure.Repositories
                 .OrderBy(x => x.OccurrenceStartUtc)
                 .ToListAsync();
 
+        public Task<List<VolunteerShift>> GetPastByVolunteerIdAsync(Guid volunteerId, DateTime nowUtc)
+            => _db.VolunteerShifts
+                .AsNoTracking()
+                .Include(x => x.TimeSlot)
+                    .ThenInclude(ts => ts.Venue)
+                .Where(x =>
+                    x.VolunteerId == volunteerId &&
+                    x.Status != Domain.Models.Enums.VolunteerShiftStatus.Cancelled &&
+                    x.OccurrenceStartUtc < nowUtc)
+                .OrderByDescending(x => x.OccurrenceStartUtc)
+                .ToListAsync();
+
         public async Task<List<VolunteerShift>> GetByTimeSlotIdAsync(Guid timeSlotId)
         {
             return await _db.VolunteerShifts

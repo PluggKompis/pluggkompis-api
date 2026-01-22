@@ -7,6 +7,7 @@ namespace Application.Common.Interfaces
         Task<VolunteerShift?> GetByIdWithTimeSlotAsync(Guid id);
         Task<VolunteerShift?> GetByVolunteerAndTimeSlotAsync(Guid volunteerId, Guid timeSlotId);
         Task<List<VolunteerShift>> GetUpcomingByVolunteerIdAsync(Guid volunteerId, DateTime nowUtc);
+        Task<List<VolunteerShift>> GetPastByVolunteerIdAsync(Guid volunteerId, DateTime nowUtc);
         Task<List<VolunteerShift>> GetByTimeSlotIdAsync(Guid timeSlotId);
         Task<VolunteerShift?> GetByIdWithTimeSlotVenueAsync(Guid id);
         Task<List<VolunteerShift>> GetAttendedShiftsForVolunteerAsync(
