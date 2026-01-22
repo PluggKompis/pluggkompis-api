@@ -20,6 +20,8 @@ namespace Application.Venues.Dtos
         public required string ContactEmail { get; set; }
         public required string ContactPhone { get; set; }
         public bool IsActive { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
 
         /// <summary>
         /// Info of the coordinator managing this venue
@@ -52,6 +54,8 @@ namespace Application.Venues.Dtos
         public required string ContactEmail { get; set; }
         public required string ContactPhone { get; set; }
         public bool IsActive { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
 
         public Guid CoordinatorId { get; set; }
         public required string CoordinatorName { get; set; }
@@ -80,6 +84,9 @@ namespace Application.Venues.Dtos
         public required string Description { get; set; }
         public required string ContactEmail { get; set; }
         public required string ContactPhone { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
     }
 
     /// <summary>
@@ -95,6 +102,9 @@ namespace Application.Venues.Dtos
         public required string ContactEmail { get; set; }
         public required string ContactPhone { get; set; }
         public bool IsActive { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
     }
 
     /// <summary>

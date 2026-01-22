@@ -14,6 +14,8 @@ namespace Domain.Models.Entities.Venues
         public string Description { get; set; } = default!;
         public string ContactEmail { get; set; } = default!;
         public string ContactPhone { get; set; } = default!;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
 
         public Guid CoordinatorId { get; set; }
         public User Coordinator { get; set; } = default!;

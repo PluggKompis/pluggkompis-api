@@ -10,6 +10,8 @@ namespace Application.Common.Mappings
     {
         public VenueMappingProfile()
         {
+            CreateMap<CreateVenueRequest, Venue>();
+            CreateMap<UpdateVenueRequest, Venue>();
             // Venue → VenueDto
             CreateMap<Venue, VenueDto>()
                 .ForMember(dest => dest.CoordinatorName,
