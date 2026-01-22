@@ -41,12 +41,6 @@ namespace Application.Volunteers.Commands.ApplyToVenue
                 return OperationResult<VolunteerProfileDto>.Failure("You must create your volunteer profile before applying to a venue.");
 
             // Business rules
-            if (await _applications.HasApplicationWithStatusAsync(volunteerId, VolunteerApplicationStatus.Pending))
-                return OperationResult<VolunteerProfileDto>.Failure("You already have a pending application.");
-
-            if (await _applications.HasApplicationWithStatusAsync(volunteerId, VolunteerApplicationStatus.Approved))
-                return OperationResult<VolunteerProfileDto>.Failure("You are already approved at a venue. You must leave the current venue before applying to another.");
-
             if (await _applications.HasPendingApplicationForVenueAsync(volunteerId, venueId))
                 return OperationResult<VolunteerProfileDto>.Failure("You already have a pending application for this venue.");
 
