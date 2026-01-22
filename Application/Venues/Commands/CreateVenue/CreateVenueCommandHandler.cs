@@ -22,30 +22,19 @@ namespace Application.Venues.Commands.CreateVenue
         }
         public async Task<OperationResult<VenueDto>> Handle(CreateVenueCommand command, CancellationToken cancellationToken)
         {
-            // Check if coordinator already has a venue
             var existingVenue = await _venueRepository.GetByCoordinatorIdAsync(command.CoordinatorId);
             if (existingVenue != null)
-            {
                 return OperationResult<VenueDto>.Failure("You already have a venue.");
-            }
 
-            var venue = new Venue
-            {
-                Id = Guid.NewGuid(),
-                Name = command.Request.Name,
-                Address = command.Request.Address,
-                City = command.Request.City,
-                PostalCode = command.Request.PostalCode,
-                Description = command.Request.Description,
-                ContactEmail = command.Request.ContactEmail,
-                ContactPhone = command.Request.ContactPhone,
-                CoordinatorId = command.CoordinatorId,
-                IsActive = true // New venues are always active initially
-            };
+            var venue = _mapper.Map<Venue>(command.Request);
+
+            venue.Id = Guid.NewGuid();
+            venue.CoordinatorId = command.CoordinatorId;
+            venue.IsActive = true;
 
             var created = await _venueRepository.CreateAsync(venue);
-            var dto = _mapper.Map<VenueDto>(created);
 
+            var dto = _mapper.Map<VenueDto>(created);
             return OperationResult<VenueDto>.Success(dto);
         }
     }

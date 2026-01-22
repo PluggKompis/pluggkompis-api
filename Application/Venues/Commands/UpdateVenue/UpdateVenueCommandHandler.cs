@@ -30,25 +30,13 @@ namespace Application.Venues.Commands.UpdateVenue
             var venue = await _venueRepository.GetByIdAsync(command.VenueId);
 
             if (venue == null)
-            {
                 return OperationResult<VenueDto>.Failure("Venue not found.");
-            }
 
-            // Authoriation: Verify coordinator owns this venue
             if (venue.CoordinatorId != command.CoordinatorId)
-            {
                 return OperationResult<VenueDto>.Failure("You can only update your own venue.");
-            }
 
-            // Update venue properties
-            venue.Name = command.Request.Name;
-            venue.Address = command.Request.Address;
-            venue.City = command.Request.City;
-            venue.PostalCode = command.Request.PostalCode;
-            venue.Description = command.Request.Description;
-            venue.ContactEmail = command.Request.ContactEmail;
-            venue.ContactPhone = command.Request.ContactPhone;
-            venue.IsActive = command.Request.IsActive;
+            // Map request onto existing entity
+            _mapper.Map(command.Request, venue);
 
             await _venueRepository.UpdateAsync(venue);
 
