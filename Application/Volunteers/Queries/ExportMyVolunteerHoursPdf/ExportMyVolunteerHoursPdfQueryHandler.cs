@@ -218,7 +218,6 @@ namespace Application.Volunteers.Queries.ExportMyVolunteerHoursPdf
                     });
                 });
             });
-
             return document.GeneratePdf();
         }
 
