@@ -119,6 +119,8 @@ namespace Application.Bookings.Commands.CreateBooking
                 Status = booking.Status,
                 Notes = booking.Notes,
                 VenueName = timeSlot.Venue?.Name ?? "Unknown Venue",
+                VenueAddress = timeSlot.Venue?.Address,
+                VenueCity = timeSlot.Venue?.City,
                 TimeSlotTime = $"{timeSlot.StartTime:hh\\:mm} - {timeSlot.EndTime:hh\\:mm}",
                 ChildName = childName
             };

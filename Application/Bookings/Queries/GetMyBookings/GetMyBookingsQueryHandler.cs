@@ -43,6 +43,8 @@ namespace Application.Bookings.Queries.GetMyBookings
                     Status = b.Status,
                     Notes = b.Notes,
                     VenueName = b.TimeSlot.Venue.Name,
+                    VenueAddress = b.TimeSlot.Venue.Address,
+                    VenueCity = b.TimeSlot.Venue.City,
                     TimeSlotTime = $"{b.TimeSlot.StartTime:hh\\:mm} - {b.TimeSlot.EndTime:hh\\:mm}",
                     ChildName = b.Child?.FirstName
                 })

@@ -19,6 +19,8 @@ namespace Application.Bookings.Dtos
 
         // Display Info
         public string VenueName { get; set; } = default!;
+        public string? VenueAddress { get; set; }
+        public string? VenueCity { get; set; }
         public string TimeSlotTime { get; set; } = default!;  // "16:00 - 18:00"
         public string? ChildName { get; set; }
     }
