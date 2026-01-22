@@ -37,11 +37,11 @@ namespace Application.Coordinator.Commands.ApproveVolunteerApplication
                 return OperationResult<VolunteerApplicationDto>.Failure(
                     "Only pending applications can be approved.");
 
-            if (await _applications.HasApplicationWithStatusAsync(
-                    application.VolunteerId,
-                    VolunteerApplicationStatus.Approved))
-                return OperationResult<VolunteerApplicationDto>.Failure(
-                    "This volunteer is already approved at another venue.");
+            //if (await _applications.HasApplicationWithStatusAsync(
+            //        application.VolunteerId,
+            //        VolunteerApplicationStatus.Approved))
+            //    return OperationResult<VolunteerApplicationDto>.Failure(
+            //        "This volunteer is already approved at another venue.");
 
             application.Status = VolunteerApplicationStatus.Approved;
             application.ReviewedByCoordinatorId = request.CoordinatorId;

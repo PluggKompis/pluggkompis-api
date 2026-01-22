@@ -3,6 +3,7 @@ using Application.Volunteers.Commands.CreateMyVolunteerProfile;
 using Application.Volunteers.Commands.UpdateMyVolunteerProfile;
 using Application.Volunteers.Dtos;
 using Application.Volunteers.Queries.ExportMyVolunteerHoursPdf;
+using Application.Volunteers.Queries.GetAvailableShifts;
 using Application.Volunteers.Queries.GetMyVolunteerApplications;
 using Application.Volunteers.Queries.GetMyVolunteerProfile;
 using Application.VolunteerShifts.Commands.CancelVolunteerShift;
@@ -104,6 +105,19 @@ namespace API.Controllers
             // GetMyVolunteerShiftsQuery(volunteerId)
             var result = await _mediator.Send(new GetVolunteerUpcomingShiftsQuery(volunteerId));
 
+            return this.FromOperationResult(result);
+        }
+
+        /// <summary>
+        /// Get all available shifts to sign up for
+        /// </summary>
+        [Authorize(Roles = nameof(UserRole.Volunteer))]
+        [HttpGet("available-shifts")]
+        public async Task<IActionResult> GetAvailableShifts()
+        {
+            var volunteerId = User.GetUserId();
+
+            var result = await _mediator.Send(new GetAvailableShiftsQuery(volunteerId));
             return this.FromOperationResult(result);
         }
 
