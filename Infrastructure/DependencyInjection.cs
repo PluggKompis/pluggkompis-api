@@ -48,6 +48,7 @@ namespace Infrastructure
             services.AddScoped<IVolunteerApplicationRepository, VolunteerApplicationRepository>();
             services.AddScoped<IVolunteerShiftRepository, VolunteerShiftRepository>();
             services.AddScoped<ICoordinatorDashboardRepository, CoordinatorDashboardRepository>();
+            services.AddScoped<IAvailableShiftsRepository, AvailableShiftsRepository>();
 
             // Auth services
             services.AddScoped<ITokenService, JwtTokenService>();
