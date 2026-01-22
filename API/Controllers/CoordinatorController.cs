@@ -1,6 +1,7 @@
 using API.Extensions;
 using Application.Coordinator.Commands.ApproveVolunteerApplication;
 using Application.Coordinator.Commands.DeclineVolunteerApplication;
+using Application.Coordinator.Queries.GetCoordinatorDashboard;
 using Application.Coordinator.Queries.GetCoordinatorShifts;
 using Application.Coordinator.Queries.GetPendingApplications;
 using Application.Volunteers.Commands.MarkShiftAttendance;
@@ -101,6 +102,18 @@ namespace API.Controllers
             };
 
             var result = await _mediator.Send(query);
+            return this.FromOperationResult(result);
+        }
+
+        /// <summary>
+        /// Get dashboard stats for the coordinator's venue
+        /// </summary>
+        [Authorize(Roles = "Coordinator")]
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboard()
+        {
+            var coordinatorId = User.GetUserId();
+            var result = await _mediator.Send(new GetCoordinatorDashboardQuery(coordinatorId));
             return this.FromOperationResult(result);
         }
     }
