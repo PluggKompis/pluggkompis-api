@@ -23,6 +23,26 @@ namespace Application.Bookings.Dtos
         public string? ChildName { get; set; }
     }
 
+    public class MyBookingDto
+    {
+        public Guid Id { get; set; }
+        public Guid TimeSlotId { get; set; }
+        public Guid? StudentId { get; set; }
+        public Guid? ChildId { get; set; }
+        public Guid BookedByUserId { get; set; }
+        public DateTime BookingDate { get; set; }
+        public DateTime BookedAt { get; set; }
+        public BookingStatus Status { get; set; }
+        public string? Notes { get; set; }
+
+        // Display Info
+        public string VenueName { get; set; } = default!;
+        public string? VenueAddress { get; set; }
+        public string? VenueCity { get; set; }
+        public string TimeSlotTime { get; set; } = default!;
+        public string? ChildName { get; set; }
+    }
+
     /// <summary>
     /// Request DTO for creating a new booking
     /// </summary>
