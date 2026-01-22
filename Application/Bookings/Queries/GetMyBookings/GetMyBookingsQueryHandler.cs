@@ -9,7 +9,7 @@ namespace Application.Bookings.Queries.GetMyBookings
     /// <summary>
     /// Handler for retrieving all bookings for a user
     /// </summary>
-    public class GetMyBookingsQueryHandler : IRequestHandler<GetMyBookingsQuery, OperationResult<List<BookingDto>>>
+    public class GetMyBookingsQueryHandler : IRequestHandler<GetMyBookingsQuery, OperationResult<List<MyBookingDto>>>
     {
         private readonly IGenericRepository<Booking> _bookingRepo;
         public GetMyBookingsQueryHandler(IGenericRepository<Booking> bookingRepo)
@@ -17,7 +17,7 @@ namespace Application.Bookings.Queries.GetMyBookings
             _bookingRepo = bookingRepo;
         }
 
-        public async Task<OperationResult<List<BookingDto>>> Handle(GetMyBookingsQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<List<MyBookingDto>>> Handle(GetMyBookingsQuery request, CancellationToken cancellationToken)
         {
             // Get bookings with all related data in ONE query
             var bookings = await _bookingRepo.FindWithIncludesAsync(
@@ -31,7 +31,7 @@ namespace Application.Bookings.Queries.GetMyBookings
             var dtos = bookings
                 .OrderByDescending(b => b.BookingDate)
                 .ThenBy(b => b.TimeSlot.StartTime)
-                .Select(b => new BookingDto
+                .Select(b => new MyBookingDto
                 {
                     Id = b.Id,
                     TimeSlotId = b.TimeSlotId,
@@ -43,12 +43,14 @@ namespace Application.Bookings.Queries.GetMyBookings
                     Status = b.Status,
                     Notes = b.Notes,
                     VenueName = b.TimeSlot.Venue.Name,
+                    VenueAddress = b.TimeSlot.Venue.Address,
+                    VenueCity = b.TimeSlot.Venue.City,
                     TimeSlotTime = $"{b.TimeSlot.StartTime:hh\\:mm} - {b.TimeSlot.EndTime:hh\\:mm}",
                     ChildName = b.Child?.FirstName
                 })
                 .ToList();
 
-            return OperationResult<List<BookingDto>>.Success(dtos);
+            return OperationResult<List<MyBookingDto>>.Success(dtos);
         }
     }
 }
