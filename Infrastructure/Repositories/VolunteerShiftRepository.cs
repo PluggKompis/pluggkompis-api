@@ -78,6 +78,7 @@ namespace Infrastructure.Repositories
             DateTime endExclusiveUtc)
             => _db.VolunteerShifts
                 .AsNoTracking()
+                .Include(x => x.Volunteer)
                 .Include(x => x.TimeSlot)
                     .ThenInclude(ts => ts.Venue)
                 .Where(x =>
