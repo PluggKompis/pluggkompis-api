@@ -9,6 +9,7 @@ using Application.Volunteers.Queries.GetMyVolunteerProfile;
 using Application.VolunteerShifts.Commands.CancelVolunteerShift;
 using Application.VolunteerShifts.Commands.SignupForShift;
 using Application.VolunteerShifts.Dtos;
+using Application.VolunteerShifts.Queries.GetVolunteerPastShifts;
 using Application.VolunteerShifts.Queries.GetVolunteerUpcomingShifts;
 using Domain.Models.Enums;
 using MediatR;
@@ -90,21 +91,27 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Get all my shifts (upcoming + past)
+        /// Get all my upcoming shifts
         /// GET /api/volunteers/me/shifts
         /// </summary>
         [Authorize(Roles = nameof(UserRole.Volunteer))]
-        [HttpGet("me/shifts")]
+        [HttpGet("me/shifts/upcoming")]
         public async Task<IActionResult> GetMyShifts()
         {
             var volunteerId = User.GetUserId();
-
-            // NOTE:
-            // Keeping your current query to avoid changing Application layer now.
-            // If/when you implement "upcoming + past", swap to a new query like:
-            // GetMyVolunteerShiftsQuery(volunteerId)
             var result = await _mediator.Send(new GetVolunteerUpcomingShiftsQuery(volunteerId));
+            return this.FromOperationResult(result);
+        }
 
+        /// <summary>
+        /// Get all my past shifts
+        /// </summary>
+        [Authorize(Roles = nameof(UserRole.Volunteer))]
+        [HttpGet("me/shifts/past")]
+        public async Task<IActionResult> GetMyPastShifts()
+        {
+            var volunteerId = User.GetUserId();
+            var result = await _mediator.Send(new GetVolunteerPastShiftsQuery(volunteerId));
             return this.FromOperationResult(result);
         }
 
