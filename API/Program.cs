@@ -22,13 +22,16 @@ namespace API
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddSwaggerWithJwtAuth();
 
-            builder.Services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    // Serialize enums as strings in API responses (e.g., "Status": "Active" instead of "Status": 1)
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                });
+            builder.Services.AddControllers(options =>
+            {
+                // This handles enum binding from query parameters
+                options.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider());
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
             builder.Services.AddCustomValidationResponse();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
