@@ -57,7 +57,20 @@ namespace Application.TimeSlots.Commands.UpdateTimeSlot
             timeSlot.MaxStudents = command.Request.MaxStudents;
             timeSlot.IsRecurring = command.Request.IsRecurring;
             timeSlot.SpecificDate = command.Request.SpecificDate;
+            timeSlot.RecurringStartDate = command.Request.RecurringStartDate;
+            timeSlot.RecurringEndDate = command.Request.RecurringEndDate;
             timeSlot.Status = command.Request.Status;
+
+            // ✅ Defensive normalization (validator should enforce, but keep DB consistent)
+            if (timeSlot.IsRecurring)
+            {
+                timeSlot.SpecificDate = null;
+            }
+            else
+            {
+                timeSlot.RecurringStartDate = null;
+                timeSlot.RecurringEndDate = null;
+            }
 
             // Update subjects (remove old, add new)
             timeSlot.Subjects.Clear();
