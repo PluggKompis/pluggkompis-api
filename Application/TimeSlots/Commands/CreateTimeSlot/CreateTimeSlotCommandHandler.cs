@@ -55,10 +55,12 @@ namespace Application.TimeSlots.Commands.CreateTimeSlot
                 return OperationResult<TimeSlotDto>.Failure($"TimeSlot overlaps with existing timeslot on {command.Request.DayOfWeek}");
             }
 
+            var timeSlotId = Guid.NewGuid();
+
             // Create TimeSlot entity
             var timeSlot = new TimeSlot
             {
-                Id = Guid.NewGuid(),
+                Id = timeSlotId,
                 VenueId = command.Request.VenueId,
                 DayOfWeek = command.Request.DayOfWeek,
                 StartTime = command.Request.StartTime,
@@ -66,13 +68,27 @@ namespace Application.TimeSlots.Commands.CreateTimeSlot
                 MaxStudents = command.Request.MaxStudents,
                 IsRecurring = command.Request.IsRecurring,
                 SpecificDate = command.Request.SpecificDate,
+                RecurringStartDate = command.Request.RecurringStartDate,
+                RecurringEndDate = command.Request.RecurringEndDate,
                 Status = TimeSlotStatus.Open,  // Always start as Open
                 Subjects = command.Request.SubjectIds.Select(subjectId => new TimeSlotSubject
                 {
-                    TimeSlotId = Guid.NewGuid(),  // Will be set by TimeSlot.Id
+                    TimeSlotId = timeSlotId,  // Will be set by TimeSlot.Id
                     SubjectId = subjectId
                 }).ToList()
             };
+
+            // Defensive normalization (validator should enforce, but keep DB clean)
+            if (timeSlot.IsRecurring)
+            {
+                timeSlot.SpecificDate = null;
+            }
+            else
+            {
+                timeSlot.RecurringStartDate = null;
+                timeSlot.RecurringEndDate = null;
+            }
+
 
             var createdTimeSlot = await _timeSlotRepository.CreateAsync(timeSlot);
 

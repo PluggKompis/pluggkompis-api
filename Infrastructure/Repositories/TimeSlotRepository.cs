@@ -80,7 +80,6 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateAsync(TimeSlot timeSlot)
         {
-            _context.TimeSlots.Update(timeSlot);
             await _context.SaveChangesAsync();
         }
 
