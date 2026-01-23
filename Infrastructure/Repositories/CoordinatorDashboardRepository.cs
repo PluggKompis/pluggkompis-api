@@ -29,7 +29,18 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(ct);
 
             if (venue is null)
-                return OperationResult<CoordinatorDashboardModel>.Failure("forbidden: coordinator has no active venue");
+            {
+                return OperationResult<CoordinatorDashboardModel>.Success(
+                    new CoordinatorDashboardModel
+                    {
+                        TotalBookingsThisWeek = 0,
+                        TotalVolunteers = 0,
+                        UnfilledShiftsCount = 0,
+                        UpcomingShifts = new List<UpcomingShiftModel>(),
+                        SubjectCoverage = new List<SubjectCoverageModel>(),
+                        VolunteerUtilization = new List<VolunteerUtilizationModel>()
+                    });
+            }
 
             var venueId = venue.Id;
 
