@@ -24,9 +24,10 @@ namespace Application.Venues.Queries.GetMyVenue
         {
             var venue = await _venueRepository.GetByCoordinatorIdAsync(request.CoordinatorId);
 
-            if (venue == null)
+            if (venue is null)
             {
-                return OperationResult<VenueDto>.Failure("You do nothave a venue yet.");
+                // Treat "no venue yet" as a valid state => 200 OK with data = null
+                return OperationResult<VenueDto>.Success(null!);
             }
 
             var dto = _mapper.Map<VenueDto>(venue);
