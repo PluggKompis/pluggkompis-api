@@ -43,17 +43,58 @@ namespace Application.TimeSlots.Validators
                 .Must(x => x.Count <= 3)
                 .WithMessage("Cannot have more than 3 subjects to a time slot.");
 
-            // Validate SpecificDate logic
+            // -----------------------------
+            // ✅ One-off vs recurring logic
+            // -----------------------------
+
+            // Non-recurring => SpecificDate required
             RuleFor(x => x.SpecificDate)
                 .Must((request, specificDate) => request.IsRecurring || specificDate.HasValue)
-                .WithMessage("SpecificDate is required for non-recurring timeslots.")
-                .Must(BeInFuture)
-                .When(x => x.SpecificDate.HasValue)
-                .WithMessage("SpecificDate should not be set for recurring timeslots");
+                .WithMessage("SpecificDate is required for non-recurring timeslots.");
 
+            // Non-recurring => SpecificDate must be future
+            RuleFor(x => x.SpecificDate)
+                .Must(BeInFuture)
+                .When(x => !x.IsRecurring && x.SpecificDate.HasValue)
+                .WithMessage("SpecificDate must be in the future.");
+
+            // Recurring => SpecificDate must not be set
             RuleFor(x => x.SpecificDate)
                 .Must((request, specificDate) => !request.IsRecurring || !specificDate.HasValue)
-                .WithMessage("SpecificDate should not be set for recurring timeslots");
+                .WithMessage("SpecificDate should not be set for recurring timeslots.");
+
+            // Recurring => RecurringStartDate required
+            RuleFor(x => x.RecurringStartDate)
+                .Must((request, startDate) => !request.IsRecurring || startDate.HasValue)
+                .WithMessage("RecurringStartDate is required for recurring timeslots.");
+
+            // Recurring => RecurringStartDate must be future
+            RuleFor(x => x.RecurringStartDate)
+                .Must(BeInFuture)
+                .When(x => x.IsRecurring && x.RecurringStartDate.HasValue)
+                .WithMessage("RecurringStartDate must be in the future.");
+
+            // Non-recurring => recurring fields must not be set
+            RuleFor(x => x.RecurringStartDate)
+                .Must((request, startDate) => request.IsRecurring || !startDate.HasValue)
+                .WithMessage("RecurringStartDate should not be set for non-recurring timeslots.");
+
+            RuleFor(x => x.RecurringEndDate)
+                .Must((request, endDate) => request.IsRecurring || !endDate.HasValue)
+                .WithMessage("RecurringEndDate should not be set for non-recurring timeslots.");
+
+            // RecurringEndDate >= RecurringStartDate (when provided)
+            RuleFor(x => x)
+                .Must(x => !x.IsRecurring
+                           || !x.RecurringEndDate.HasValue
+                           || (x.RecurringStartDate.HasValue && x.RecurringEndDate.Value >= x.RecurringStartDate.Value))
+                .WithMessage("RecurringEndDate cannot be before RecurringStartDate.");
+
+            // If end date is provided, also enforce future
+            RuleFor(x => x.RecurringEndDate)
+                .Must(BeInFuture)
+                .When(x => x.IsRecurring && x.RecurringEndDate.HasValue)
+                .WithMessage("RecurringEndDate must be in the future.");
         }
 
         private bool BeReasonableTime(TimeSpan time)
@@ -68,7 +109,7 @@ namespace Application.TimeSlots.Validators
             if (!date.HasValue)
                 return true;
 
-            return date.Value > DateOnly.FromDateTime(DateTime.Now);
+            return date.Value >= DateOnly.FromDateTime(DateTime.Now);
         }
     }
 }
