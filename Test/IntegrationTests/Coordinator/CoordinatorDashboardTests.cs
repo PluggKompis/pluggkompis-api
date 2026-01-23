@@ -1,6 +1,7 @@
 using Application.Auth.Dtos;
 using Application.Coordinator.Dtos;
 using Domain.Models.Common;
+using Domain.Models.Entities.JoinEntities;
 using Domain.Models.Entities.Venues;
 using Domain.Models.Entities.Volunteers;
 using Domain.Models.Enums;
@@ -114,6 +115,33 @@ namespace Test.IntegrationTests.Coordinator
                 Icon = "➗"
             };
             db.Subjects.Add(subject);
+
+
+            // Create an active timeslot THIS WEEK so SubjectCoverage has "demand" data
+            var timeSlot = new TimeSlot
+            {
+                Id = Guid.NewGuid(),
+                VenueId = venue.Id,
+                DayOfWeek = (WeekDay)DateTime.UtcNow.DayOfWeek, // or pick a specific WeekDay
+                StartTime = new TimeSpan(16, 0, 0),
+                EndTime = new TimeSpan(18, 0, 0),
+                MaxStudents = 10,
+                Status = TimeSlotStatus.Open,
+
+                // IMPORTANT: make it active this week
+                IsRecurring = true,
+                RecurringStartDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-1)),
+                RecurringEndDate = null
+            };
+
+            db.TimeSlots.Add(timeSlot);
+
+            // Link subject to timeslot (required for SubjectCoverage to include "Matematik")
+            db.Set<TimeSlotSubject>().Add(new TimeSlotSubject
+            {
+                TimeSlotId = timeSlot.Id,
+                SubjectId = subject.Id
+            });
 
             // Approved volunteer linked to venue
             var volunteerId = Guid.NewGuid();
