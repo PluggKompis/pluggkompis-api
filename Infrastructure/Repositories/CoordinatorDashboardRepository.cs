@@ -141,11 +141,29 @@ namespace Infrastructure.Repositories
             }
 
             // 6) UnfilledShiftsCount
-            // Definition: timeslots that have NO volunteer shift occurrence in next 7 days.
-            // We count only Open (you can include Full too if you still care about volunteer coverage on full sessions).
+            // Definition: time slots that are ACTIVE in the next 7 days, but have NO volunteer shift occurrence in that window.
+
+            var upcomingStartDateOnly = DateOnly.FromDateTime(nowUtc);
+            var upcomingEndDateOnlyExclusive = DateOnly.FromDateTime(upcomingEndUtcExclusive);
+
             var unfilledShiftsCount = await _db.TimeSlots
                 .AsNoTracking()
                 .Where(ts => ts.VenueId == venueId && ts.Status == TimeSlotStatus.Open)
+                .Where(ts =>
+                    // One-off slot: SpecificDate must be inside [now, upcomingEnd)
+                    (!ts.IsRecurring
+                     && ts.SpecificDate.HasValue
+                     && ts.SpecificDate.Value >= upcomingStartDateOnly
+                     && ts.SpecificDate.Value < upcomingEndDateOnlyExclusive)
+
+                    ||
+
+                    // Recurring slot: must overlap [now, upcomingEnd)
+                    (ts.IsRecurring
+                     && ts.RecurringStartDate.HasValue
+                     && ts.RecurringStartDate.Value < upcomingEndDateOnlyExclusive
+                     && (!ts.RecurringEndDate.HasValue || ts.RecurringEndDate.Value >= upcomingStartDateOnly))
+                )
                 .Where(ts =>
                     !_db.VolunteerShifts.Any(vs =>
                         vs.TimeSlotId == ts.Id &&
@@ -154,28 +172,102 @@ namespace Infrastructure.Repositories
                         vs.OccurrenceStartUtc < upcomingEndUtcExclusive))
                 .CountAsync(ct);
 
-            // 7) SubjectCoverage (approved volunteers at venue grouped by subject)
-            // Venue approved volunteers -> VolunteerSubject join -> Subject name
-            var subjectCoverage = await _db.VolunteerApplications
+            // =================================================================================
+            // 7) SubjectCoverage (scheduled subjects THIS week + actual volunteers THIS week)
+            // =================================================================================
+
+            var weekStartDateOnly = DateOnly.FromDateTime(weekStartUtc);
+            var weekEndDateOnlyExclusive = DateOnly.FromDateTime(weekEndUtcExclusive);
+
+            // Step A: Identify which TimeSlots are active during this week
+            var weeklyTimeSlotIds = await _db.TimeSlots
                 .AsNoTracking()
-                .Where(a => a.VenueId == venueId && a.Status == VolunteerApplicationStatus.Approved)
-                .Join(_db.Set<VolunteerSubject>().AsNoTracking(),
-                    app => app.VolunteerId,
-                    vs => vs.VolunteerId,
-                    (app, vs) => new { vs.SubjectId, app.VolunteerId })
-                .Join(_db.Subjects.AsNoTracking(),
-                    x => x.SubjectId,
-                    s => s.Id,
-                    (x, s) => new { SubjectName = s.Name, x.VolunteerId })
-                .GroupBy(x => x.SubjectName)
-                .Select(g => new SubjectCoverageModel
-                {
-                    SubjectName = g.Key,
-                    VolunteersCount = g.Select(x => x.VolunteerId).Distinct().Count()
-                })
-                .OrderByDescending(x => x.VolunteersCount)
-                .ThenBy(x => x.SubjectName)
+                .Where(ts => ts.VenueId == venueId && ts.Status != TimeSlotStatus.Cancelled)
+                .Where(ts =>
+                    // One-off slot: SpecificDate must be inside [weekStart, weekEnd)
+                    (!ts.IsRecurring
+                     && ts.SpecificDate.HasValue
+                     && ts.SpecificDate.Value >= weekStartDateOnly
+                     && ts.SpecificDate.Value < weekEndDateOnlyExclusive)
+
+                    ||
+
+                    // Recurring slot: must overlap with the week window
+                    (ts.IsRecurring
+                     && ts.RecurringStartDate.HasValue
+                     && ts.RecurringStartDate.Value < weekEndDateOnlyExclusive
+                     && (!ts.RecurringEndDate.HasValue || ts.RecurringEndDate.Value >= weekStartDateOnly))
+                )
+                .Select(ts => ts.Id)
                 .ToListAsync(ct);
+
+            List<SubjectCoverageModel> subjectCoverage;
+
+            if (weeklyTimeSlotIds.Count == 0)
+            {
+                subjectCoverage = new List<SubjectCoverageModel>();
+            }
+            else
+            {
+                // Step B: Scheduled subjects for those slots (demand)
+                var weeklySlotSubjects = await _db.Set<TimeSlotSubject>()
+                    .AsNoTracking()
+                    .Where(x => weeklyTimeSlotIds.Contains(x.TimeSlotId))
+                    .Select(x => new { x.TimeSlotId, SubjectName = x.Subject.Name })
+                    .ToListAsync(ct);
+
+                // Step C: Actual volunteers working those slots THIS week (supply)
+                var weeklySlotVolunteers = await _db.VolunteerShifts
+                    .AsNoTracking()
+                    .Where(vs =>
+                        weeklyTimeSlotIds.Contains(vs.TimeSlotId) &&
+                        vs.Status != VolunteerShiftStatus.Cancelled &&
+                        vs.OccurrenceStartUtc >= weekStartUtc &&
+                        vs.OccurrenceStartUtc < weekEndUtcExclusive)
+                    .Select(vs => new { vs.TimeSlotId, vs.VolunteerId })
+                    .ToListAsync(ct);
+
+                // SubjectName -> distinct volunteers
+                var coverageMap = new Dictionary<string, HashSet<Guid>>(StringComparer.OrdinalIgnoreCase);
+
+                // Ensure subjects show up even with 0 volunteers
+                foreach (var row in weeklySlotSubjects)
+                {
+                    if (!coverageMap.ContainsKey(row.SubjectName))
+                        coverageMap[row.SubjectName] = new HashSet<Guid>();
+                }
+
+                // Build quick lookup: TimeSlotId -> volunteer ids
+                var volunteerLookup = weeklySlotVolunteers
+                    .GroupBy(x => x.TimeSlotId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.VolunteerId).Distinct().ToList());
+
+                foreach (var slotGroup in weeklySlotSubjects.GroupBy(x => x.TimeSlotId))
+                {
+                    var slotId = slotGroup.Key;
+
+                    if (!volunteerLookup.TryGetValue(slotId, out var volunteersForSlot))
+                        volunteersForSlot = new List<Guid>();
+
+                    foreach (var subjectName in slotGroup.Select(x => x.SubjectName).Distinct())
+                    {
+                        foreach (var volunteerId in volunteersForSlot)
+                        {
+                            coverageMap[subjectName].Add(volunteerId);
+                        }
+                    }
+                }
+
+                subjectCoverage = coverageMap
+                    .Select(kv => new SubjectCoverageModel
+                    {
+                        SubjectName = kv.Key,
+                        VolunteersCount = kv.Value.Count
+                    })
+                    .OrderByDescending(x => x.VolunteersCount)
+                    .ThenBy(x => x.SubjectName)
+                    .ToList();
+            }
 
             // 8) VolunteerUtilization (hours per volunteer this week)
             var utilizationRows = await _db.VolunteerShifts
