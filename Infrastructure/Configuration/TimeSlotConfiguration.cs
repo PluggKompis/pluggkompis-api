@@ -35,6 +35,9 @@ namespace Infrastructure.Configuration
                   .HasForeignKey(tss => tss.TimeSlotId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            entity.Property(x => x.RecurringStartDate).IsRequired(false);
+            entity.Property(x => x.RecurringEndDate).IsRequired(false);
+
             // Index
             entity.HasIndex(x => x.VenueId);
             entity.HasIndex(x => new { x.VenueId, x.DayOfWeek });
