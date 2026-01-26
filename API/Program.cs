@@ -41,7 +41,8 @@ namespace API
                 options.AddPolicy("CORS-FE-WEB", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:5173")
+                        .WithOrigins("http://localhost:5173",
+                        "https://pluggkompis-client.vercel.app/")
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
