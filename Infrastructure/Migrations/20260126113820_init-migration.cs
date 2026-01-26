@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,8 @@ namespace Infrastructure.Migrations
                     LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RefreshTokenExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Role = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
@@ -90,6 +92,8 @@ namespace Infrastructure.Migrations
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     ContactEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     ContactPhone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Latitude = table.Column<double>(type: "float", nullable: true),
+                    Longitude = table.Column<double>(type: "float", nullable: true),
                     CoordinatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -141,6 +145,8 @@ namespace Infrastructure.Migrations
                     MaxStudents = table.Column<int>(type: "int", nullable: false),
                     IsRecurring = table.Column<bool>(type: "bit", nullable: false),
                     SpecificDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    RecurringStartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    RecurringEndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -155,6 +161,42 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VolunteerApplications",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    AppliedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReviewedByCoordinatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ReviewedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DecisionNote = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VolunteerApplications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VolunteerApplications_Users_ReviewedByCoordinatorId",
+                        column: x => x.ReviewedByCoordinatorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_VolunteerApplications_Users_VolunteerId",
+                        column: x => x.VolunteerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_VolunteerApplications_Venues_VenueId",
+                        column: x => x.VenueId,
+                        principalTable: "Venues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VolunteerProfiles",
                 columns: table => new
                 {
@@ -163,9 +205,9 @@ namespace Infrastructure.Migrations
                     Experience = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     MaxHoursPerWeek = table.Column<int>(type: "int", nullable: true),
                     PreferredVenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -186,8 +228,7 @@ namespace Infrastructure.Migrations
                         name: "FK_VolunteerProfiles_Venues_VenueId",
                         column: x => x.VenueId,
                         principalTable: "Venues",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -199,13 +240,16 @@ namespace Infrastructure.Migrations
                     StudentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ChildId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     BookedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BookedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true)
+                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Bookings", x => x.Id);
+                    table.CheckConstraint("CK_Booking_StudentOrChild", "((StudentId IS NOT NULL AND ChildId IS NULL) OR (StudentId IS NULL AND ChildId IS NOT NULL))");
                     table.ForeignKey(
                         name: "FK_Bookings_Children_ChildId",
                         column: x => x.ChildId,
@@ -265,7 +309,9 @@ namespace Infrastructure.Migrations
                     VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     IsAttended = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true)
+                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    OccurrenceStartUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OccurrenceEndUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -308,6 +354,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Bookings_TimeSlotId",
                 table: "Bookings",
                 column: "TimeSlotId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_TimeSlotId_BookingDate",
+                table: "Bookings",
+                columns: new[] { "TimeSlotId", "BookingDate" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_TimeSlotId_ChildId",
@@ -366,9 +417,24 @@ namespace Infrastructure.Migrations
                 column: "CoordinatorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VolunteerProfiles_IsApproved",
-                table: "VolunteerProfiles",
-                column: "IsApproved");
+                name: "IX_VolunteerApplications_AppliedAt",
+                table: "VolunteerApplications",
+                column: "AppliedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerApplications_ReviewedByCoordinatorId",
+                table: "VolunteerApplications",
+                column: "ReviewedByCoordinatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerApplications_VenueId_Status",
+                table: "VolunteerApplications",
+                columns: new[] { "VenueId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerApplications_VolunteerId_Status",
+                table: "VolunteerApplications",
+                columns: new[] { "VolunteerId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_VolunteerProfiles_PreferredVenueId",
@@ -402,6 +468,11 @@ namespace Infrastructure.Migrations
                 column: "VolunteerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VolunteerShifts_VolunteerId_OccurrenceStartUtc",
+                table: "VolunteerShifts",
+                columns: new[] { "VolunteerId", "OccurrenceStartUtc" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VolunteerSubjects_SubjectId",
                 table: "VolunteerSubjects",
                 column: "SubjectId");
@@ -418,6 +489,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "TimeSlotSubjects");
+
+            migrationBuilder.DropTable(
+                name: "VolunteerApplications");
 
             migrationBuilder.DropTable(
                 name: "VolunteerProfiles");
