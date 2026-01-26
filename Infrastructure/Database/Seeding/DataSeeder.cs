@@ -1,6 +1,4 @@
 using Domain.Models.Entities.Subjects;
-using Domain.Models.Entities.Users;
-using Domain.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database.Seeding
@@ -9,24 +7,6 @@ namespace Infrastructure.Database.Seeding
     {
         public static async Task SeedAsync(AppDbContext context)
         {
-            // USERS
-            if (!await context.Users.AnyAsync())
-            {
-                var coordinatorId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-
-                context.Users.Add(new User
-                {
-                    Id = coordinatorId,
-                    FirstName = "Test",
-                    LastName = "Coordinator",
-                    Email = "coordinator@test.se",
-                    PasswordHash = "DEV_ONLY_NO_AUTH",
-                    Role = UserRole.Coordinator,
-                    CreatedAt = DateTime.UtcNow,
-                    IsActive = true
-                });
-            }
-
             // SUBJECTS
             if (!await context.Subjects.AnyAsync())
             {

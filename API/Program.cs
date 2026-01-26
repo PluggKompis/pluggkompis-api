@@ -53,20 +53,14 @@ namespace API
 
             var app = builder.Build();
 
-            // remove the seeder after test
-            if (app.Environment.IsDevelopment())
-            {
-                using var scope = app.Services.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                await DataSeeder.SeedAsync(context);
-            }
-
+            // Seeding subjects
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await DataSeeder.SeedAsync(context);
+            
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
