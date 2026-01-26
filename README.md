@@ -95,7 +95,7 @@ PluggKompis/
 │  │  ├─ ClaimsPrincipalExtensions.cs
 │  │  └─ ControllerExtensions.cs
 │  ├─ Middleware/
-│  │  └─ AutenticationSetup.cs
+│  │  └─ AuthenticationSetup.cs
 │  │  └─ SwaggerSetup.cs
 │  │  └─ ValidationBehaviour.cs
 │  ├─ appsettings.json
@@ -395,68 +395,84 @@ public async Task<IActionResult> CreateVenue([FromBody] CreateVenueRequest reque
 ```
 POST   /api/auth/register     - Register new user
 POST   /api/auth/login        - Login and get JWT token
+POST   /api/auth/refresh      - Refresh JWT token
+```
+### Users
+
+```
+GET    /api/users/me          - Get my user profile details
+PATCH  /api/users/me          - Update my profile details
+PUT    /api/users/me/password - Change password
+DELETE /api/users/me          - Soft delete my account
 ```
 
 ### Venues
 
 ```
-GET    /api/venues                    - List all venues (with filters)
-GET    /api/venues/{id}               - Get venue details
-POST   /api/venues                    - Create venue (Coordinator only)
-PUT    /api/venues/{id}               - Update venue (Coordinator only)
-DELETE /api/venues/{id}               - Delete venue (Coordinator only)
-GET    /api/venues/{id}/timeslots     - Get venue's schedule
-GET    /api/venues/{id}/volunteers    - Get venue's volunteers
+GET    /api/venues                   - List all venues (with filters)
+GET    /api/venues/{id}              - Get venue details
+POST   /api/venues                   - Create venue (Coordinator only)
+GET    /api/venues/my-venue          - Get the venue I manage (Coordinator only)
+PUT    /api/venues/{id}              - Update venue (Coordinator only)
+DELETE /api/venues/{id}              - Delete venue (Coordinator only)
+GET    /api/venues/{id}/timeslots    - Get venue's schedule
+GET    /api/venues/{id}/volunteers   - Get venue's volunteers
+POST   /api/venues/apply             - Apply to be a volunteer at this venue
 ```
 
 ### TimeSlots
 
 ```
-GET    /api/timeslots                 - List time slots (with filters)
 GET    /api/timeslots/{id}            - Get time slot details
 POST   /api/timeslots                 - Create time slot (Coordinator only)
-PUT    /api/timeslots/{id}            - Update time slot
-PUT    /api/timeslots/{id}/cancel     - Cancel time slot
+PUT    /api/timeslots/{id}            - Update time slot (Coordinator only)
+PUT    /api/timeslots/{id}/cancel     - Cancel time slot (Coordinator only)
+DELETE /api/timeslots/{id}            - Delete time slot (Coordinator only)
+GET    /api/timeslots/{id}/volunteers - Get volunteers signed up for this slot
 ```
 
 ### Bookings
 
 ```
-GET    /api/bookings                  - List user's bookings
-GET    /api/bookings/{id}             - Get booking details
-POST   /api/bookings                  - Create booking
-DELETE /api/bookings/{id}             - Cancel booking
+GET    /api/bookings          - List my bookings
+POST   /api/bookings          - Create a booking
+DELETE /api/bookings/{id}     - Cancel a booking
 ```
 
 ### Volunteers
 
 ```
-POST   /api/volunteers/apply                      - Apply to be volunteer
-GET    /api/volunteers/{id}/profile               - Get volunteer profile
-PUT    /api/volunteers/{id}/profile               - Update volunteer profile
-GET    /api/volunteers/{id}/shifts                - Get volunteer's shifts
-POST   /api/volunteers/shifts                     - Sign up for shift
-DELETE /api/volunteers/shifts/{id}                - Cancel shift
-GET    /api/volunteers/{id}/reports/hours.pdf     - Export hours as PDF (VG)
+GET    /api/volunteers/available-shifts       - Get all available shifts
+GET    /api/volunteers/me/profile             - Get my volunteer profile
+POST   /api/volunteers/me/profile             - Create my volunteer profile
+PATCH  /api/volunteers/me/profile             - Update my volunteer profile
+GET    /api/volunteers/me/shifts/upcoming     - Get my upcoming shifts
+GET    /api/volunteers/me/shifts/past         - Get my past shifts
+POST   /api/volunteers/shifts                 - Sign up for a shift
+DELETE /api/volunteers/shifts/{id}            - Cancel my shift assignment
+GET    /api/volunteers/me/applications        - Get my venue applications
+GET    /api/volunteers/me/reports/hours.pdf   - Export hours as PDF
 ```
 
 ### Coordinator
 
 ```
-GET    /api/coordinator/dashboard              - Get dashboard data (VG)
-GET    /api/coordinator/applications           - Get pending volunteer applications
-PUT    /api/coordinator/applications/{id}/approve  - Approve volunteer
-PUT    /api/coordinator/applications/{id}/decline  - Decline volunteer
-PUT    /api/coordinator/shifts/{id}/attendance     - Mark attendance
+GET    /api/coordinator/dashboard               - Get dashboard data 
+GET    /api/coordinator/applications            - Get pending volunteer applications
+PUT    /api/coordinator/applications/{id}/approve - Approve volunteer application
+PUT    /api/coordinator/applications/{id}/decline - Decline volunteer application
+GET    /api/coordinator/shifts                  - Get/Filter shifts for managed venue
+PUT    /api/coordinator/shifts/{id}/attendance  - Mark volunteer attendance
 ```
 
 ### Children
 
 ```
-GET    /api/children              - List parent's children
-POST   /api/children              - Register child
-PUT    /api/children/{id}         - Update child info
-DELETE /api/children/{id}         - Remove child
+GET    /api/children          - List parent's children
+GET    /api/children/{id}     - Get specific child details
+POST   /api/children          - Register child
+PUT    /api/children/{id}     - Update child info
+DELETE /api/children/{id}     - Remove child
 ```
 
 ### Subjects
@@ -468,30 +484,49 @@ GET    /api/subjects              - List all subjects
 ---
 
 ## 🧪 Testing
+The solution uses a single test project (`Test.csproj`) containing both Unit and Integration tests, organized by namespaces.
 
-### Run All Tests
+### Run Tests
 
+**Run All Tests:**
 ```bash
 dotnet test
 ```
+### Run Only Unit Tests:
 
-### Run Specific Test Project
+# Filters tests in the 'Application' namespace
+dotnet test --filter "FullyQualifiedName~Application"
 
-```bash
-dotnet test Tests/UnitTests
-dotnet test Tests/IntegrationTests
-```
+# Filters tests in the 'IntegrationTests' namespace
+dotnet test --filter "FullyQualifiedName~IntegrationTests"
 
 ### Test Coverage
 
-Integration tests verify:
+Unit Tests (Test/Application) verify:
+- Authentication: Login/Register flows, password hashing, and token generation.
+- Booking Logic:
+   - Capacity checks (preventing bookings when TimeSlot is full).
+   - Child ownership validation (parents can only book for their own children).
+   - Cancellation restrictions (rejecting cancellations <2 hours before session).
+- User Operations: Profile updates, password changes, and "Soft Delete" functionality.
+- Coordinator Dashboard: Validation of volunteer total and subject coverage calculations.
 
-- Booking creation and validation
-- Venue filtering by subject
-- TimeSlot cancellation with notifications
-- Volunteer application workflow
-- PDF export functionality
-
+Integration Tests (Test/IntegrationTests) verify:
+- Security & Authorization:
+   - Ensures non-coordinators cannot create venues or access dashboards (403 Forbidden).
+   - Verifies that specific endpoints return 401 Unauthorized without tokens.
+- Data Isolation:
+   - Children: Verifies that Parent A cannot see or edit Parent B's children.
+   - Venues: Verifies Coordinator A cannot modify Coordinator B's venue.
+- Schedule Management:
+   - Overlap Validation: Prevents creating TimeSlots that conflict with existing ones.
+   - Public Access: Ensures venue schedules are publicly readable without login.
+- Volunteer Workflow:
+   - Signups: Tests the full flow of a volunteer applying for a shift.
+   - Business Rules: Prevents a volunteer from signing up for the same shift twice.
+- Coordinator Actions:
+   - Attendance: Tests the full flow of marking a volunteer as "Attended" and saving notes.
+   - Dashboard: Verifies that dashboard data queries correctly against a seeded database.
 ---
 
 ## 🚀 Deployment
@@ -503,18 +538,11 @@ Uses SQL Server Express with connection string in `appsettings.Development.json`
 ### Production (Azure)
 
 Deployed to Azure App Service with:
-
 - Azure SQL Database
-- Azure Functions (for automated reminders)
-- Application Insights (monitoring)
-
-**Live API:** https://pluggkompis-api.azurewebsites.net/api  
-**Swagger:** https://pluggkompis-api.azurewebsites.net/swagger
 
 ### CI/CD Pipeline
 
 GitHub Actions automatically:
-
 - Runs tests on every PR to `development` or `main`
 - Checks code formatting
 - Deploys to Azure when merged to `main`
@@ -559,8 +587,6 @@ dotnet ef database update -p Infrastructure -s API
 
 ## 📊 Database Schema
 
-See [ER Diagram](docs/er-diagram.png) for complete database structure.
-
 **Key Tables:**
 
 - Users - System users with roles
@@ -598,19 +624,6 @@ To support the planned frontend enhancements, the following backend architecture
   - Update the Azure Function/Background Service to respect user preferences (Email vs SMS) before triggering SendGrid.
 - **Geospatial Search (NetTopologySuite):**
   - Implement true radius-based search (e.g., "Venues within 5km") instead of simple city-name matching. This shifts the heavy lifting to the SQL database, ensuring the app remains fast even as the number of venues grows to the thousands.
-
----
-
-## 📝 License
-
-This project is created as a school project for NBI Handelsakademin.
-
----
-
-## 🔗 Related Repositories
-
-- **Frontend:** [pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)
-- **Project Board:** [PluggKompis Development](https://github.com/orgs/PluggKompis/projects/1)
 
 ---
 
