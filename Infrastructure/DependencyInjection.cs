@@ -23,7 +23,8 @@ namespace Infrastructure
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
             // Declare connectionString BEFORE using it
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("SQLAZURECONNSTR_PluggkompisDB")
+                ?? configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
