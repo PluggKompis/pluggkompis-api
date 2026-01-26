@@ -42,7 +42,7 @@ namespace API
                 {
                     policy
                         .WithOrigins("http://localhost:5173",
-                        "https://pluggkompis-client.vercel.app/")
+                        "https://pluggkompis-client.vercel.app")
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
