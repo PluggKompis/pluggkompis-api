@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260109141037_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260126113820_init-migration")]
+    partial class initmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,6 +36,12 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid>("BookedByUserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ChildId")
                         .HasColumnType("uniqueidentifier");
@@ -65,11 +71,16 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("TimeSlotId");
 
+                    b.HasIndex("TimeSlotId", "BookingDate");
+
                     b.HasIndex("TimeSlotId", "ChildId");
 
                     b.HasIndex("TimeSlotId", "StudentId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", t =>
+                        {
+                            t.HasCheckConstraint("CK_Booking_StudentOrChild", "((StudentId IS NOT NULL AND ChildId IS NULL) OR (StudentId IS NULL AND ChildId IS NOT NULL))");
+                        });
                 });
 
             modelBuilder.Entity("Domain.Models.Entities.Children.Child", b =>
@@ -185,6 +196,12 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
@@ -213,6 +230,12 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("MaxStudents")
                         .HasColumnType("int");
+
+                    b.Property<DateOnly?>("RecurringEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("RecurringStartDate")
+                        .HasColumnType("date");
 
                     b.Property<DateOnly?>("SpecificDate")
                         .HasColumnType("date");
@@ -276,6 +299,12 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -293,6 +322,47 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CoordinatorId");
 
                     b.ToTable("Venues");
+                });
+
+            modelBuilder.Entity("Domain.Models.Entities.Volunteers.VolunteerApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByCoordinatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VolunteerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppliedAt");
+
+                    b.HasIndex("ReviewedByCoordinatorId");
+
+                    b.HasIndex("VenueId", "Status");
+
+                    b.HasIndex("VolunteerId", "Status");
+
+                    b.ToTable("VolunteerApplications");
                 });
 
             modelBuilder.Entity("Domain.Models.Entities.Volunteers.VolunteerProfile", b =>
@@ -313,21 +383,19 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("MaxHoursPerWeek")
                         .HasColumnType("int");
 
                     b.Property<Guid?>("PreferredVenueId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("VenueId")
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("VenueId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("VolunteerId");
-
-                    b.HasIndex("IsApproved");
 
                     b.HasIndex("PreferredVenueId");
 
@@ -349,6 +417,12 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<DateTime>("OccurrenceEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("OccurrenceStartUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -368,6 +442,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("TimeSlotId", "VolunteerId")
                         .IsUnique();
+
+                    b.HasIndex("VolunteerId", "OccurrenceStartUtc");
 
                     b.ToTable("VolunteerShifts");
                 });
@@ -502,18 +578,42 @@ namespace Infrastructure.Migrations
                     b.Navigation("Coordinator");
                 });
 
-            modelBuilder.Entity("Domain.Models.Entities.Volunteers.VolunteerProfile", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Volunteers.VolunteerApplication", b =>
                 {
-                    b.HasOne("Domain.Models.Entities.Venues.Venue", "PreferredVenue")
-                        .WithMany("PreferredByVolunteers")
-                        .HasForeignKey("PreferredVenueId")
+                    b.HasOne("Domain.Models.Entities.Users.User", "ReviewedByCoordinator")
+                        .WithMany("ReviewedVolunteerApplications")
+                        .HasForeignKey("ReviewedByCoordinatorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.Models.Entities.Venues.Venue", "Venue")
-                        .WithMany()
+                        .WithMany("VolunteerApplications")
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Domain.Models.Entities.Users.User", "Volunteer")
+                        .WithMany("VolunteerApplications")
+                        .HasForeignKey("VolunteerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReviewedByCoordinator");
+
+                    b.Navigation("Venue");
+
+                    b.Navigation("Volunteer");
+                });
+
+            modelBuilder.Entity("Domain.Models.Entities.Volunteers.VolunteerProfile", b =>
+                {
+                    b.HasOne("Domain.Models.Entities.Venues.Venue", "PreferredVenue")
+                        .WithMany()
+                        .HasForeignKey("PreferredVenueId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Models.Entities.Venues.Venue", null)
+                        .WithMany("PreferredByVolunteers")
+                        .HasForeignKey("VenueId");
 
                     b.HasOne("Domain.Models.Entities.Users.User", "Volunteer")
                         .WithOne("VolunteerProfile")
@@ -522,8 +622,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PreferredVenue");
-
-                    b.Navigation("Venue");
 
                     b.Navigation("Volunteer");
                 });
@@ -569,6 +667,10 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("CoordinatedVenues");
 
+                    b.Navigation("ReviewedVolunteerApplications");
+
+                    b.Navigation("VolunteerApplications");
+
                     b.Navigation("VolunteerProfile");
 
                     b.Navigation("VolunteerShifts");
@@ -590,6 +692,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("PreferredByVolunteers");
 
                     b.Navigation("TimeSlots");
+
+                    b.Navigation("VolunteerApplications");
                 });
 #pragma warning restore 612, 618
         }
