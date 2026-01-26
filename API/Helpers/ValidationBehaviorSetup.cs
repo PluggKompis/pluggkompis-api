@@ -1,4 +1,4 @@
-﻿using Domain.Models.Common;
+using Domain.Models.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Helpers

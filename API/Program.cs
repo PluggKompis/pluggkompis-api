@@ -1,14 +1,17 @@
-
 using API.Helpers;
 using API.Middleware;
 using Application;
 using Infrastructure;
+using Infrastructure.Database;
+using Infrastructure.Database.Seeding;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +22,16 @@ namespace API
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddSwaggerWithJwtAuth();
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                // This handles enum binding from query parameters
+                options.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider());
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
             builder.Services.AddCustomValidationResponse();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -29,7 +41,7 @@ namespace API
                 options.AddPolicy("CORS-FE-WEB", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:3000")
+                        .WithOrigins("http://localhost:5173")
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
@@ -39,6 +51,14 @@ namespace API
             builder.Logging.AddConsole();
 
             var app = builder.Build();
+
+            // remove the seeder after test
+            if (app.Environment.IsDevelopment())
+            {
+                using var scope = app.Services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await DataSeeder.SeedAsync(context);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -63,3 +83,6 @@ namespace API
         }
     }
 }
+
+// Make Program class accessible for testing
+public partial class Program { }

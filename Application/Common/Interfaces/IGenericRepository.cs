@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace Application.Common.Interfaces
 {
@@ -7,6 +7,11 @@ namespace Application.Common.Interfaces
         Task<T?> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
+
+        // Support for eager loading with Include
+        Task<IEnumerable<T>> FindWithIncludesAsync(
+            Expression<Func<T, bool>> predicate,
+            params Expression<Func<T, object>>[] includes);
 
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);

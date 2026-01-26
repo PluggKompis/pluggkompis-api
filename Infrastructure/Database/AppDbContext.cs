@@ -1,5 +1,11 @@
-﻿using Domain.Models;
-using Domain.Models.Users;
+using Domain.Models;
+using Domain.Models.Entities.Bookings;
+using Domain.Models.Entities.Children;
+using Domain.Models.Entities.JoinEntities;
+using Domain.Models.Entities.Subjects;
+using Domain.Models.Entities.Users;
+using Domain.Models.Entities.Venues;
+using Domain.Models.Entities.Volunteers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database
@@ -11,29 +17,23 @@ namespace Infrastructure.Database
         }
 
         public DbSet<User> Users => Set<User>();
-        public DbSet<Role> Roles => Set<Role>();
-        public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<Venue> Venues => Set<Venue>();
+        public DbSet<VolunteerProfile> VolunteerProfiles => Set<VolunteerProfile>();
+        public DbSet<Subject> Subjects => Set<Subject>();
+        public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
+        public DbSet<TimeSlotSubject> TimeSlotSubjects => Set<TimeSlotSubject>();
+        public DbSet<Child> Children => Set<Child>();
+        public DbSet<Booking> Bookings => Set<Booking>();
+        public DbSet<VolunteerShift> VolunteerShifts => Set<VolunteerShift>();
+        public DbSet<VolunteerSubject> VolunteerSubjects => Set<VolunteerSubject>();
+        public DbSet<VolunteerApplication> VolunteerApplications => Set<VolunteerApplication>();
 
         public DbSet<LogEntry> Logs => Set<LogEntry>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<UserRole>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-            modelBuilder.Entity<UserRole>()
-                .HasOne(ur => ur.User)
-                .WithMany(u => u.Roles)
-                .HasForeignKey(ur => ur.UserId);
-
-            modelBuilder.Entity<UserRole>()
-                .HasOne(ur => ur.Role)
-                .WithMany(r => r.Users)
-                .HasForeignKey(ur => ur.RoleId);
-
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
-
     }
 }

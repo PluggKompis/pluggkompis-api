@@ -1,0 +1,84 @@
+using Application.Common.Dtos;
+using Domain.Models.Common;
+using Microsoft.AspNetCore.Mvc;
+
+namespace API.Extensions
+{
+    /// <summary>
+    /// Maps OperationResult<T> from the Application layer to HTTP IActionResult responses.
+    /// Centralizes status-code logic (200/201/400/404) to keep controllers thin and consistent.
+    /// </summary>
+    public static class ControllerExtensions
+    {
+        /// <summary>
+        /// Handles generic OperationResult<T> for operations that return data
+        /// </summary>
+        public static IActionResult FromOperationResult<T>(
+            this ControllerBase controller,
+            OperationResult<T> result,
+            bool created = false)
+        {
+            if (result.IsSuccess)
+            {
+                return created
+                    ? controller.StatusCode(StatusCodes.Status201Created, result)
+                    : controller.Ok(result);
+            }
+
+            if (result.Errors.Any(e => e.Contains("forbidden", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.StatusCode(StatusCodes.Status403Forbidden, result);
+            }
+
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.NotFound(result);
+            }
+
+            return controller.BadRequest(result);
+        }
+
+        /// <summary>
+        /// Handles non-generic OperationResult for NoContent operations (like Delete)
+        /// </summary>
+        public static IActionResult FromOperationResultNoContent(
+            this ControllerBase controller,
+            OperationResult result)
+        {
+            if (result.IsSuccess)
+                return controller.NoContent();
+
+            var hasNotFound = result.Errors.Any(e =>
+                e.Contains("not found", StringComparison.OrdinalIgnoreCase));
+
+            return hasNotFound
+                ? controller.NotFound(result)
+                : controller.BadRequest(result);
+        }
+
+        /// <summary>
+        /// Handles OperationResult<FileResponseDto> for file download operations
+        /// </summary>
+        public static IActionResult FromOperationResultFile(
+            this ControllerBase controller,
+            OperationResult<FileResponseDto> result)
+        {
+            if (result.IsSuccess && result.Data is not null)
+            {
+                return controller.File(result.Data.Content, result.Data.ContentType, result.Data.FileName);
+            }
+
+            if (result.Errors.Any(e => e.Contains("forbidden", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.StatusCode(StatusCodes.Status403Forbidden, result);
+            }
+
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
+            {
+                return controller.NotFound(result);
+            }
+
+            return controller.BadRequest(result);
+        }
+    }
+}

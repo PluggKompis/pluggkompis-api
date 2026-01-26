@@ -1,10 +1,10 @@
-﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces;
 using Infrastructure.Configuration;
 using Infrastructure.Database;
-using Infrastructure.Database.Seeding;
 using Infrastructure.Interceptors;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
+using Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -20,31 +20,40 @@ namespace Infrastructure
                 configuration.GetSection("JwtSettings")
             );
 
-            services.AddScoped<IAuthService, AuthService>();
-
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
+
+            // Declare connectionString BEFORE using it
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
                 var interceptor = serviceProvider.GetRequiredService<SaveChangesInterceptor>();
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                if (env != "Test" && !string.IsNullOrEmpty(connectionString))
+                {
+                    options.UseSqlServer(connectionString);
+                }
 
                 options.AddInterceptors(interceptor);
             });
 
-
-            // Register generic repository
+            // Register repository
+            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IVenueRepository, VenueRepository>();
+            services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
+            services.AddScoped<IVolunteerSubjectRepository, VolunteerSubjectRepository>();
+            services.AddScoped<IVolunteerApplicationRepository, VolunteerApplicationRepository>();
+            services.AddScoped<IVolunteerShiftRepository, VolunteerShiftRepository>();
+            services.AddScoped<ICoordinatorDashboardRepository, CoordinatorDashboardRepository>();
+            services.AddScoped<IAvailableShiftsRepository, AvailableShiftsRepository>();
 
-            // Seeding
-            using var provider = services.BuildServiceProvider();
-            using var scope = provider.CreateScope();
-
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            DataSeeder.SeedAsync(db).GetAwaiter().GetResult(); // ✅ sync-safe
-
-
+            // Auth services
+            services.AddScoped<ITokenService, JwtTokenService>();
+            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
             services.AddHttpContextAccessor();
             services.AddScoped<IUserContextService, UserContextService>();
 

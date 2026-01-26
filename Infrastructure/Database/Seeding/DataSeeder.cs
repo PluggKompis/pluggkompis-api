@@ -1,7 +1,6 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Bogus;
-using Domain.Models.Users;
+using Domain.Models.Entities.Subjects;
+using Domain.Models.Entities.Users;
+using Domain.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database.Seeding
@@ -10,83 +9,55 @@ namespace Infrastructure.Database.Seeding
     {
         public static async Task SeedAsync(AppDbContext context)
         {
-            var faker = new Faker("en");
-
-            // 1  Roles
-            if (!await context.Roles.AnyAsync())
-            {
-                var roles = new[]
-                {
-            new Role { Name = "Admin" },
-            new Role { Name = "User" },
-            new Role { Name = "CompanyUser" },
-            new Role { Name = "Auditor" },
-            new Role { Name = "Manager" }
-        };
-
-                await context.Roles.AddRangeAsync(roles);
-                await context.SaveChangesAsync();
-            }
-
-            // 2️ Users
+            // USERS
             if (!await context.Users.AnyAsync())
             {
-                var roles = await context.Roles.ToListAsync();
-                var adminRole = roles.First(r => r.Name == "Admin");
-                var userRole = roles.First(r => r.Name == "User");
-                var companyRole = roles.First(r => r.Name == "CompanyUser");
+                var coordinatorId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
-                var users = new List<User>();
-
-                // Admin
-                users.Add(CreateUserWithPassword("admin", "admin@bank.com", "admin123", new[] { adminRole }));
-
-                // Regular users
-                for (int i = 0; i < 5; i++)
+                context.Users.Add(new User
                 {
-                    var user = CreateUserWithPassword(
-                        faker.Internet.UserName(),
-                        faker.Internet.Email(),
-                        "user123",
-                        new[] { userRole });
-                    users.Add(user);
-                }
-
-                // Company/internal users
-                for (int i = 0; i < 3; i++)
-                {
-                    var user = CreateUserWithPassword(
-                        $"employee_{faker.Random.Number(100, 999)}",
-                        faker.Internet.Email(),
-                        "company123",
-                        new[] { companyRole });
-                    users.Add(user);
-                }
-
-                await context.Users.AddRangeAsync(users);
-                await context.SaveChangesAsync();
+                    Id = coordinatorId,
+                    FirstName = "Test",
+                    LastName = "Coordinator",
+                    Email = "coordinator@test.se",
+                    PasswordHash = "DEV_ONLY_NO_AUTH",
+                    Role = UserRole.Coordinator,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                });
             }
-        }
 
-
-        private static User CreateUserWithPassword(string username, string email, string password, Role[] roles)
-        {
-            using var hmac = new HMACSHA512();
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            var salt = hmac.Key;
-
-            return new User
+            // SUBJECTS
+            if (!await context.Subjects.AnyAsync())
             {
-                Id = Guid.NewGuid(),
-                Username = username,
-                Email = email,
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                Roles = roles.Select(role => new UserRole
-                {
-                    RoleId = role.Id
-                }).ToList()
-            };
+                var subjects = new List<Subject>
+        {
+            new Subject { Id = Guid.NewGuid(), Name = "Matematik", Icon = "📐" },
+            new Subject { Id = Guid.NewGuid(), Name = "Svenska", Icon = "📖" },
+            new Subject { Id = Guid.NewGuid(), Name = "Engelska", Icon = "🇬🇧" },
+            new Subject { Id = Guid.NewGuid(), Name = "Naturkunskap", Icon = "🌿" },
+            new Subject { Id = Guid.NewGuid(), Name = "Fysik", Icon = "⚛️" },
+            new Subject { Id = Guid.NewGuid(), Name = "Kemi", Icon = "🧪" },
+            new Subject { Id = Guid.NewGuid(), Name = "Biologi", Icon = "🦠" },
+            new Subject { Id = Guid.NewGuid(), Name = "Samhällskunskap", Icon = "🏛️" },
+            new Subject { Id = Guid.NewGuid(), Name = "Historia", Icon = "📜" },
+            new Subject { Id = Guid.NewGuid(), Name = "Geografi", Icon = "🌍" },
+            new Subject { Id = Guid.NewGuid(), Name = "Idrott och hälsa", Icon = "⚽" },
+            new Subject { Id = Guid.NewGuid(), Name = "Musik", Icon = "🎵" },
+            new Subject { Id = Guid.NewGuid(), Name = "Bild", Icon = "🎨" },
+            new Subject { Id = Guid.NewGuid(), Name = "Slöjd", Icon = "🔨" },
+            new Subject { Id = Guid.NewGuid(), Name = "Teknik", Icon = "⚙️" },
+            new Subject { Id = Guid.NewGuid(), Name = "Hem- och konsumentkunskap", Icon = "🍳" },
+            new Subject { Id = Guid.NewGuid(), Name = "Programmering", Icon = "💻" },
+            new Subject { Id = Guid.NewGuid(), Name = "Spanska", Icon = "🇪🇸" },
+            new Subject { Id = Guid.NewGuid(), Name = "Franska", Icon = "🇫🇷" },
+            new Subject { Id = Guid.NewGuid(), Name = "Tyska", Icon = "🇩🇪" },
+        };
+
+                await context.Subjects.AddRangeAsync(subjects);
+            }
+
+            await context.SaveChangesAsync();
         }
     }
 }

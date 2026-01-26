@@ -1,74 +1,47 @@
-﻿using Application.Auth.Dtos;
-using Application.Common.Interfaces;
+using Application.Auth.Commands.Login;
+using Application.Auth.Commands.RefreshToken;
+using Application.Auth.Commands.Register;
+using Application.Auth.Dtos;
+using API.Extensions;
 using Domain.Models.Common;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IMediator _mediator;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IMediator mediator)
         {
-            _authService = authService;
+            _mediator = mediator;
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<OperationResult<AuthResponseDto>>> Register([FromBody] RegisterUserDto dto)
+        [ProducesResponseType(typeof(OperationResult<AuthResponseDto>), StatusCodes.Status201Created)]
+        public async Task<IActionResult> Register([FromBody] RegisterUserDto dto)
         {
-            var result = await _authService.RegisterAsync(dto);
-
-            if (!result.IsSuccess)
-                return BadRequest(result);
-
-            SetRefreshTokenCookie(result.Data!.RefreshToken);
-            return Ok(result);
+            var result = await _mediator.Send(new RegisterUserCommand(dto));
+            return this.FromOperationResult(result, created: true);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<OperationResult<AuthResponseDto>>> Login([FromBody] LoginUserDto dto)
+        [ProducesResponseType(typeof(OperationResult<AuthResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Login([FromBody] LoginUserDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-
-            if (!result.IsSuccess)
-                return Unauthorized(result);
-
-            SetRefreshTokenCookie(result.Data!.RefreshToken);
-            return Ok(result);
+            var result = await _mediator.Send(new LoginUserCommand(dto));
+            return this.FromOperationResult(result);
         }
 
         [HttpPost("refresh")]
-        public async Task<ActionResult<OperationResult<AuthResponseDto>>> Refresh()
+        [ProducesResponseType(typeof(OperationResult<AuthResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest dto)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-
-            if (string.IsNullOrWhiteSpace(refreshToken))
-                return Unauthorized(OperationResult<AuthResponseDto>.Failure("Missing refresh token."));
-
-            var result = await _authService.RefreshTokenAsync(new RefreshTokenRequest
-            {
-                RefreshToken = refreshToken
-            });
-
-            if (!result.IsSuccess)
-                return Unauthorized(result);
-
-            SetRefreshTokenCookie(result.Data!.RefreshToken);
-            return Ok(result);
-        }
-
-        private void SetRefreshTokenCookie(string refreshToken)
-        {
-            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
+            var result = await _mediator.Send(new RefreshTokenCommand(dto));
+            return this.FromOperationResult(result);
         }
     }
 }
