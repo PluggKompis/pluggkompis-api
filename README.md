@@ -642,9 +642,9 @@ This project is created as a school project for NBI Handelsakademin.
 
 ## 🔗 Related Repositories
 
-- **Backend API:** [[pluggkompis-api](https://github.com/PluggKompis/pluggkompis-api)]
-- **Frontend Clinet:** [[pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)]
-- **Project Board:** [[PluggKompis Project](https://github.com/orgs/PluggKompis/projects/1/views/1)]
+- **Backend API:** [pluggkompis-api](https://github.com/PluggKompis/pluggkompis-api)
+- **Frontend Clinet:** [pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)
+- **Project Board:** [PluggKompis Project](https://github.com/orgs/PluggKompis/projects/1/views/1)
 
 ---
 
