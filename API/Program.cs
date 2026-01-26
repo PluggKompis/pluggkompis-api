@@ -57,7 +57,7 @@ namespace API
             using var scope = app.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await DataSeeder.SeedAsync(context);
-            
+
             // Configure the HTTP request pipeline.
             app.UseSwagger();
             app.UseSwaggerUI();
