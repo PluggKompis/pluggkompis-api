@@ -32,7 +32,8 @@ namespace Infrastructure
 
                 if (env != "Test" && !string.IsNullOrEmpty(connectionString))
                 {
-                    options.UseSqlServer(connectionString);
+                    if (string.IsNullOrWhiteSpace(connectionString))
+                        throw new InvalidOperationException("Missing connection string: ConnectionStrings:DefaultConnection");
                 }
 
                 options.AddInterceptors(interceptor);
