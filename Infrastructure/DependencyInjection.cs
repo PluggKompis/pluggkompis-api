@@ -23,8 +23,7 @@ namespace Infrastructure
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
             // Declare connectionString BEFORE using it
-            var connectionString = configuration.GetConnectionString("PluggkompisDB")
-                ?? configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
