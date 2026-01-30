@@ -54,9 +54,9 @@ namespace API
             var app = builder.Build();
 
             // Seeding subjects
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await DataSeeder.SeedAsync(context);
+            //using var scope = app.Services.CreateScope();
+            //var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            //await DataSeeder.SeedAsync(context);
 
             // Configure the HTTP request pipeline.
             app.UseSwagger();
