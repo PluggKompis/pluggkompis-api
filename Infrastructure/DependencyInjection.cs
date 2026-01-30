@@ -30,10 +30,10 @@ namespace Infrastructure
                 var interceptor = serviceProvider.GetRequiredService<SaveChangesInterceptor>();
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                if (env != "Test" && !string.IsNullOrEmpty(connectionString))
+                if (string.IsNullOrWhiteSpace(connectionString))
                 {
-                    if (string.IsNullOrWhiteSpace(connectionString))
-                        throw new InvalidOperationException("Missing connection string: ConnectionStrings:DefaultConnection");
+                    throw new InvalidOperationException(
+                        "Infrastructure misconfiguration: ConnectionStrings:DefaultConnection is missing");
                 }
 
                 options.AddInterceptors(interceptor);
