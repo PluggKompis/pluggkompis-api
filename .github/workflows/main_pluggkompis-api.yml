@@ -14,21 +14,21 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
-
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
-
+      
       - name: Build with dotnet
-        run: dotnet build --configuration Release
-
+        run: dotnet build API/API.csproj --configuration Release
+      
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
-
+        run: dotnet publish API/API.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -41,7 +41,7 @@ jobs:
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
-
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -54,7 +54,7 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_788193DC3EEC49669DDC427EE57B1A2D }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B1EF4450491149AEBFE03F07A520E807 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C44D6362FAA24B1599373DBC02C3EF8C }}
-
+      
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -62,4 +62,3 @@ jobs:
           app-name: 'pluggkompis-api'
           slot-name: 'Production'
           package: .
-          
