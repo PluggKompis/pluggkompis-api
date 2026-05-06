@@ -281,7 +281,8 @@ namespace Infrastructure.Repositories
                 {
                     s.VolunteerId,
                     VolunteerName = s.Volunteer.FirstName + " " + s.Volunteer.LastName,
-                    DurationMinutes = EF.Functions.DateDiffMinute(s.OccurrenceStartUtc, s.OccurrenceEndUtc)
+                    s.OccurrenceStartUtc,
+                    s.OccurrenceEndUtc
                 })
                 .ToListAsync(ct);
 
@@ -291,7 +292,8 @@ namespace Infrastructure.Repositories
                 {
                     VolunteerId = g.Key.VolunteerId,
                     VolunteerName = g.Key.VolunteerName,
-                    HoursThisWeek = Math.Round(g.Sum(x => x.DurationMinutes) / 60.0, 2)
+                    // C# TimeSpan subtraction instead of SQL Server specific function
+                    HoursThisWeek = Math.Round(g.Sum(x => (x.OccurrenceEndUtc - x.OccurrenceStartUtc).TotalMinutes) / 60.0, 2)
                 })
                 .OrderByDescending(x => x.HoursThisWeek)
                 .ThenBy(x => x.VolunteerName)
