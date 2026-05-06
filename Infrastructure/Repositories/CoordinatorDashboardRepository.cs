@@ -277,23 +277,25 @@ namespace Infrastructure.Repositories
                     s.Status != VolunteerShiftStatus.Cancelled &&
                     s.OccurrenceStartUtc >= weekStartUtc &&
                     s.OccurrenceStartUtc < weekEndUtcExclusive)
-                .Select(s => new
-                {
-                    s.VolunteerId,
-                    VolunteerName = s.Volunteer.FirstName + " " + s.Volunteer.LastName,
-                    DurationMinutes = EF.Functions.DateDiffMinute(s.OccurrenceStartUtc, s.OccurrenceEndUtc)
-                })
-                .ToListAsync(ct);
+                    .Select(s => new
+                    {
+                        s.VolunteerId,
+                        VolunteerName = s.Volunteer.FirstName + " " + s.Volunteer.LastName,
+                        s.OccurrenceStartUtc,
+                        s.OccurrenceEndUtc
+                    })
+                    .ToListAsync(ct);
 
-            var volunteerUtilization = utilizationRows
-                .GroupBy(x => new { x.VolunteerId, x.VolunteerName })
-                .Select(g => new VolunteerUtilizationModel
-                {
-                    VolunteerId = g.Key.VolunteerId,
-                    VolunteerName = g.Key.VolunteerName,
-                    HoursThisWeek = Math.Round(g.Sum(x => x.DurationMinutes) / 60.0, 2)
-                })
-                .OrderByDescending(x => x.HoursThisWeek)
+                                var volunteerUtilization = utilizationRows
+                                    .GroupBy(x => new { x.VolunteerId, x.VolunteerName })
+                                    .Select(g => new VolunteerUtilizationModel
+                                    {
+                                        VolunteerId = g.Key.VolunteerId,
+                                        VolunteerName = g.Key.VolunteerName,
+                                        // C# TimeSpan subtraction instead of SQL Server specific function
+                                        HoursThisWeek = Math.Round(g.Sum(x => (x.OccurrenceEndUtc - x.OccurrenceStartUtc).TotalMinutes) / 60.0, 2)
+                                    })
+                                        .OrderByDescending(x => x.HoursThisWeek)
                 .ThenBy(x => x.VolunteerName)
                 .ToList();
 

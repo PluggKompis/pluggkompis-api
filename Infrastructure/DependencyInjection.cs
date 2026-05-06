@@ -37,7 +37,7 @@ namespace Infrastructure
                         "Infrastructure misconfiguration: ConnectionStrings:DefaultConnection is missing");
                 }
 
-                options.UseSqlServer(connectionString);
+                options.UseNpgsql(connectionString);
                 options.AddInterceptors(interceptor);
             });
 
