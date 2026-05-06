@@ -7,13 +7,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +41,11 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: build
+    # Only deploy on actual pushes to main, not on pull requests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
     
     steps:
       - name: Download artifact from build job
