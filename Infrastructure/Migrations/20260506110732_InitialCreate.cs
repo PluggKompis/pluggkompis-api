@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initmigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +15,11 @@ namespace Infrastructure.Migrations
                 name: "Logs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EntityName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Operation = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Data = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EntityName = table.Column<string>(type: "text", nullable: false),
+                    Operation = table.Column<string>(type: "text", nullable: false),
+                    Data = table.Column<string>(type: "text", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,9 +30,9 @@ namespace Infrastructure.Migrations
                 name: "Subjects",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Icon = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Icon = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -43,16 +43,16 @@ namespace Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RefreshTokenExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Role = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,11 +63,11 @@ namespace Infrastructure.Migrations
                 name: "Children",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ParentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    BirthYear = table.Column<int>(type: "int", nullable: false),
-                    SchoolGrade = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ParentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    BirthYear = table.Column<int>(type: "integer", nullable: false),
+                    SchoolGrade = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,18 +84,18 @@ namespace Infrastructure.Migrations
                 name: "Venues",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PostalCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    ContactEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    ContactPhone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Latitude = table.Column<double>(type: "float", nullable: true),
-                    Longitude = table.Column<double>(type: "float", nullable: true),
-                    CoordinatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Address = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PostalCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    ContactEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    ContactPhone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Latitude = table.Column<double>(type: "double precision", nullable: true),
+                    Longitude = table.Column<double>(type: "double precision", nullable: true),
+                    CoordinatorId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,9 +112,9 @@ namespace Infrastructure.Migrations
                 name: "VolunteerSubjects",
                 columns: table => new
                 {
-                    VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SubjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ConfidenceLevel = table.Column<int>(type: "int", nullable: false)
+                    VolunteerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubjectId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConfidenceLevel = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -137,17 +137,17 @@ namespace Infrastructure.Migrations
                 name: "TimeSlots",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    DayOfWeek = table.Column<int>(type: "int", nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    MaxStudents = table.Column<int>(type: "int", nullable: false),
-                    IsRecurring = table.Column<bool>(type: "bit", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VenueId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "integer", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    MaxStudents = table.Column<int>(type: "integer", nullable: false),
+                    IsRecurring = table.Column<bool>(type: "boolean", nullable: false),
                     SpecificDate = table.Column<DateOnly>(type: "date", nullable: true),
                     RecurringStartDate = table.Column<DateOnly>(type: "date", nullable: true),
                     RecurringEndDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -164,14 +164,14 @@ namespace Infrastructure.Migrations
                 name: "VolunteerApplications",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    AppliedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReviewedByCoordinatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ReviewedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DecisionNote = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VolunteerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VenueId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    AppliedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ReviewedByCoordinatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DecisionNote = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -200,14 +200,14 @@ namespace Infrastructure.Migrations
                 name: "VolunteerProfiles",
                 columns: table => new
                 {
-                    VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Bio = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    Experience = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    MaxHoursPerWeek = table.Column<int>(type: "int", nullable: true),
-                    PreferredVenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    VenueId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    VolunteerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Bio = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    Experience = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    MaxHoursPerWeek = table.Column<int>(type: "integer", nullable: true),
+                    PreferredVenueId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    VenueId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -235,16 +235,16 @@ namespace Infrastructure.Migrations
                 name: "Bookings",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TimeSlotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ChildId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    BookedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    BookedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ChildId = table.Column<Guid>(type: "uuid", nullable: true),
+                    BookedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    BookedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Notes = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -280,8 +280,8 @@ namespace Infrastructure.Migrations
                 name: "TimeSlotSubjects",
                 columns: table => new
                 {
-                    TimeSlotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SubjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    TimeSlotId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubjectId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -304,14 +304,14 @@ namespace Infrastructure.Migrations
                 name: "VolunteerShifts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TimeSlotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VolunteerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    IsAttended = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    OccurrenceStartUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OccurrenceEndUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VolunteerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    IsAttended = table.Column<bool>(type: "boolean", nullable: false),
+                    Notes = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    OccurrenceStartUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OccurrenceEndUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

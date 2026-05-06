@@ -23,19 +23,21 @@ namespace Infrastructure
             services.AddSingleton<SaveChangesInterceptor, LogSaveChangesInterceptor>();
 
             // Declare connectionString BEFORE using it
-            var connectionString = configuration.GetConnectionString("PluggkompisDB")
-                ?? configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ??
+                configuration.GetConnectionString("SQLAZURECONSTR_DefaultConnection");
 
             services.AddDbContext<AppDbContext>((serviceProvider, options) =>
             {
                 var interceptor = serviceProvider.GetRequiredService<SaveChangesInterceptor>();
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                if (env != "Test" && !string.IsNullOrEmpty(connectionString))
+                if (string.IsNullOrWhiteSpace(connectionString))
                 {
-                    options.UseSqlServer(connectionString);
+                    throw new InvalidOperationException(
+                        "Infrastructure misconfiguration: ConnectionStrings:DefaultConnection is missing");
                 }
 
+                options.UseNpgsql(connectionString);
                 options.AddInterceptors(interceptor);
             });
 

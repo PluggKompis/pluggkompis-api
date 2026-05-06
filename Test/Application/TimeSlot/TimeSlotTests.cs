@@ -15,10 +15,9 @@ namespace Test.UnitTests
         [SetUp]
         public void SetUp()
         {
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile<TimeSlotMappingProfile>();
-            });
+            var expression = new MapperConfigurationExpression();
+            expression.AddProfile<TimeSlotMappingProfile>();
+            var config = new MapperConfiguration(expression);
             _mapper = config.CreateMapper();
         }
 
